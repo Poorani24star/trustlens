@@ -1,0 +1,9 @@
+node_modules/
+.env
+uploads/
+
+# Firebase Service Account Credentials
+serviceAccountKey.json
+*serviceAccount*.json
+src/config/serviceAccountKey.json
+

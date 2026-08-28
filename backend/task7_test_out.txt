@@ -1,0 +1,51 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 7: RELEVANT KNOWLEDGE RETRIEVAL TEST
+====================================================
+
+▶ TEST 1: PRIMARY TOPIC RETRIEVAL
+  [T1] Retrieved 20 active Cloud Computing entries with priority >= 100 (Primary Topic)
+
+▶ TEST 2: PRIMARY + RELATED TOPIC RETRIEVAL
+  [T2] Retrieved 20 primary (Cloud) & 10 related (OS) entries with correct priority ordering
+
+▶ TEST 3: DBMS DOCUMENT RETRIEVAL
+  [T3] Retrieved 20 DBMS entries successfully
+
+▶ TEST 4: INACTIVE SOURCE EXCLUSION
+  [T4] Inactive knowledge source was strictly excluded from retrieval results
+
+▶ TEST 5: MULTIPLE DOCUMENTS INDEPENDENT RETRIEVAL
+  [T5] Independent retrieval verified for 3 documents:
+       - Doc A (Cloud): 20 entries
+       - Doc B (DBMS):  20 entries
+       - Doc C (Net):   13 entries
+
+▶ TEST 6: DUPLICATE TOPIC MATCH DEDUPLICATION
+  [T6] Deduplication verified: 30 unique entries returned with 0 duplicates
+
+▶ TEST 7: NO TOPIC FALLBACK
+  [T7] No topic fallback returned safe empty result (0 entries)
+
+▶ TEST 8: NO KNOWLEDGE FOR TOPIC FALLBACK
+  [T8] Empty result returned cleanly when topic has no active knowledge (0 entries)
+
+▶ TEST 9: RETRIEVAL LIMITS ENFORCEMENT
+  [T9] Retrieval total limit enforced (Requested max: 5, Returned: 5)
+
+▶ TEST 10: FIREBASE / INVALID INPUT ERROR HANDLING
+  [T10] Invalid input handled cleanly without crashing session
+
+▶ TEST 11: REPORT METADATA PREPARATION
+  [T11] Report metadata verified: totalRetrieved=20, sourceIdsCount=20
+
+▶ TEST 12: ERROR DETECTION WORKFLOW STAGE ORDER
+  [T12] Error Detection workflow executed: Validation -> Topic Detection -> Relevant Knowledge Retrieval cleanly
+
+▶ TEST 13: COPIED CONTENT DETECTION UNAFFECTED
+  [T13] Copied Content Detection pipeline executed unaffected. Report ID: v5H65zel6mNAIkkEOB0s
+
+====================================================
+ 🎉 ALL TASK 7 KNOWLEDGE RETRIEVAL TESTS PASSED!   
+====================================================

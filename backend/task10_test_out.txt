@@ -1,0 +1,69 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 10: FACTUAL CLASSIFICATION TEST    
+====================================================
+
+▶ TEST 1: SUPPORTED CLASSIFICATION
+  [T1] Verified SUPPORTED classification. Reason: Statement is consistent with and supported by retrieved trusted knowledge.
+
+▶ TEST 2: PARAPHRASED SUPPORTED
+  [T2] Paraphrased statement classified as SUPPORTED cleanly
+
+▶ TEST 3: DIRECT CONTRADICTION (PROPERTY REVERSAL)
+  [T3] Direct property contradiction classified as INCORRECT. Reason: Statement contradicts trusted knowledge: describes connectionless for connection type, while trusted knowledge specifies connection-oriented.
+
+▶ TEST 4: NEGATION CONTRADICTION
+  [T4] Negated statement classified as INCORRECT. Reason: Statement contradicts trusted knowledge: the submitted statement contains a negation reversing the claim, whereas trusted evidence specifies 'TCP is a connection-oriented transport protocol providing reliable delivery....'.
+
+▶ TEST 5: NUMERIC CONTRADICTION
+  [T5] Numeric mismatch classified as INCORRECT. Reason: Statement contains a numerical factual contradiction: submitted value is 64 bit, whereas trusted knowledge specifies 32 bit.
+
+▶ TEST 6: NUMERIC SUPPORT
+  [T6] Numeric value agreement classified as SUPPORTED
+
+▶ TEST 7: PROPERTY CONTRADICTION (VOLATILITY)
+  [T7] Volatility property reversal classified as INCORRECT
+
+▶ TEST 8: UNSUPPORTED CLAIM
+  [T8] Unevidenced claim classified as UNSUPPORTED
+
+▶ TEST 9: NO KNOWLEDGE AVAILABLE
+  [T9] Missing knowledge topic classified as NO_KNOWLEDGE_AVAILABLE
+
+▶ TEST 10: MISLEADING ABSOLUTE CLAIM
+  [T10] Overgeneralizing absolute claim classified as MISLEADING. Reason: Statement is related to trusted knowledge but overgeneralizes or makes an absolute claim ('always') that exceeds available evidence.
+
+▶ TEST 11: HIGH SIMILARITY BUT CONTRADICTION
+  [T11] MANDATORY RULE VERIFIED: High similarity (0.4027) + negation classified as INCORRECT
+
+▶ TEST 12: LOW SIMILARITY MATCH
+  [T12] Weak similarity match classified as UNSUPPORTED
+
+▶ TEST 13: MULTIPLE STATEMENTS BATCH
+  [T13] Batch of 10 statements classified cleanly. Summary: {
+  supported: 4,
+  incorrect: 4,
+  misleading: 1,
+  unsupported: 1,
+  noKnowledgeAvailable: 0
+} 
+
+▶ TEST 14: MULTIPLE DOCUMENTS INDEPENDENT CLASSIFICATION
+  [T14] Independent doc classification verified: Doc A = SUPPORTED, Doc B = INCORRECT
+
+▶ TEST 15: TECHNICAL CS TERMINOLOGY PRESERVATION
+  [T15] Technical CS terminology preserved cleanly during error classification
+
+▶ TEST 16: MALFORMED KNOWLEDGE FALLBACK
+  [T16] Malformed input safely fell back to UNSUPPORTED
+
+▶ TEST 17: INVALID SIMILARITY SCORE HANDLING
+  [T17] NaN similarity score safely handled without crash
+
+▶ TEST 18: COPIED CONTENT DETECTION UNAFFECTED
+  [T18] Copied Content Detection pipeline executed unaffected. Report ID: PH4eO2ARlgpPl1uqaRJ4
+
+====================================================
+ 🎉 ALL TASK 10 FACTUAL CLASSIFICATION TESTS PASSED!
+====================================================

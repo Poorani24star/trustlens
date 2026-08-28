@@ -1,0 +1,1 @@
+Cloud computing provides virtual machines, containers, and cloud infrastructure for execution.

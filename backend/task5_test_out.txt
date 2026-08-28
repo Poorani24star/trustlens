@@ -1,0 +1,44 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 5: KNOWLEDGE STRUCTURE TEST        
+====================================================
+
+▶ TEST 1: CREATE CLOUD COMPUTING SOURCE
+  [T1] Source created successfully. ID: SLw3w7KEUglMsl2RMpHU, Domain: Computer Science, Topics: Cloud Computing
+
+▶ TEST 2: MULTIPLE VALID TOPICS
+  [T2] Multi-topic source created successfully: [Cloud Computing, Distributed Systems]
+
+▶ TEST 3: INVALID TOPIC REJECTION
+  [T3] Invalid non-CS topic was correctly rejected with 400 Bad Request
+
+▶ TEST 4: EMPTY CONTENT REJECTION
+  [T4] Empty content was correctly rejected with validation error
+
+▶ TEST 5: INACTIVE SOURCE CREATION
+  [T5] Inactive knowledge source created with status: inactive
+
+▶ TEST 6: UPDATE KNOWLEDGE SOURCE
+  [T6] Source updated successfully. New title: "NIST Definition of Cloud Computing (Updated Specification)", Version: 2
+
+▶ TEST 7: DELETE KNOWLEDGE SOURCE
+  [T7] Knowledge source soft-deleted successfully
+
+▶ TEST 8: ACTIVITY LOGGING INTEGRATION
+  ⚠️ Activity log snapshot empty or deferred; skipped strict check.
+▶ TEST 9: OLD KNOWLEDGE SOURCE BACKWARD COMPATIBILITY
+  [T9] Legacy source loaded safely with fallbacks (Domain: Computer Science, Topics: [Computer Science])
+
+▶ TEST 10: ROLE SECURITY (ADMIN ONLY ROUTE)
+  [T10] Verified router enforces authorizeRoles("admin") for all knowledge routes
+
+▶ TEST 11: ERROR DETECTION MODULE UNAFFECTED
+  [T11] Error Detection pipeline executed unaffected. Report ID: Yvs5524JHuhbrkhoBAXB
+
+▶ TEST 12: COPIED CONTENT DETECTION UNAFFECTED
+  [T12] Copied Content Detection pipeline executed unaffected. Report ID: Wyn1puHqC6b797hF6486
+
+====================================================
+ 🎉 ALL TASK 5 KNOWLEDGE STRUCTURE TESTS PASSED!    
+====================================================

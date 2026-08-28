@@ -1,0 +1,20 @@
+# Node / Dependencies
+node_modules/
+dist/
+build/
+*.log
+
+# Environment & Secrets
+.env
+.env.local
+.env.*
+*.json
+!package.json
+!package-lock.json
+!.oxlintrc.json
+*serviceAccount*.json
+
+# Temporary uploads & OS files
+uploads/
+.DS_Store
+Thumbs.db

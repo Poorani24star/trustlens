@@ -1,0 +1,55 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 9: STATEMENT COMPARISON TEST        
+====================================================
+
+▶ TEST 1: HIGH SIMILARITY MATCH
+  [T1] High similarity match verified: TCP Connection Type (Score: 0.6301)
+
+▶ TEST 2: LOW SIMILARITY MATCH
+  [T2] Low similarity match correctly assigned "no_sufficient_match" status (Score: 0)
+
+▶ TEST 3: MULTIPLE CANDIDATES RANKING
+  [T3] Multiple candidates ranked deterministically: #1 UDP Datagrams (0.6715)
+
+▶ TEST 4: NEGATION PRESERVATION
+  [T4] Textual similarity preserved (0.5169) & negation flag attached without classifying correctness
+
+▶ TEST 5: NUMERIC DIFFERENCE PRESERVATION
+  [T5] High textual similarity retained (0.6572) with numeric flag attached for Task 10
+
+▶ TEST 6: MULTIPLE STATEMENTS BATCH PROCESSING
+  [T6] Successfully processed batch of 12 ready statements independently
+
+▶ TEST 7: MULTIPLE DOCUMENTS INDEPENDENT COMPARISON
+  [T7] Document A and Document B statement comparisons executed in strict isolation
+
+▶ TEST 8: NO KNOWLEDGE AVAILABLE FALLBACK
+  [T8] No knowledge available fallback returned safe response without throwing error
+
+▶ TEST 9: ZERO VECTOR HANDLING
+  [T9] Zero vector handled safely returning similarity 0.0
+
+▶ TEST 10: DUPLICATE KNOWLEDGE STABILITY
+  [T10] Duplicate knowledge entries handled deterministically without errors
+
+▶ TEST 11: THRESHOLD ENFORCEMENT
+  [T11] Configurable similarity threshold enforced correctly
+
+▶ TEST 12: RAW SCORE RETENTION
+  [T12] Numeric raw similarity retained cleanly: 0.6301
+
+▶ TEST 13: TECHNICAL CS TERMINOLOGY PRESERVATION
+  [T13] Computer Science terms (TCP/IP, DBMS, ACID, SaaS, etc.) preserved during tokenization
+
+▶ TEST 14: ERROR DETECTION PIPELINE STAGE ORDER
+  [T14] Full Error Detection pipeline executed cleanly:
+       Validation -> Topic Detection -> Knowledge Retrieval -> Statement Extraction -> TF-IDF Comparison
+
+▶ TEST 15: COPIED CONTENT DETECTION UNAFFECTED
+  [T15] Copied Content Detection pipeline executed unaffected. Report ID: eVGuoIznugfy1MwNFYx0
+
+====================================================
+ 🎉 ALL TASK 9 STATEMENT COMPARISON TESTS PASSED!   
+====================================================

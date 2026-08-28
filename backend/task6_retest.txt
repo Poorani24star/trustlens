@@ -1,0 +1,126 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 6: REPOSITORY POPULATION TEST      
+====================================================
+
+ℹ Total knowledge sources found in repository: 104
+
+▶ TEST 1: CLOUD COMPUTING KNOWLEDGE
+  [T1] Cloud Computing verified (24 entries covering Cloud definition, VMs, Containers, IaaS, PaaS, SaaS)
+
+▶ TEST 2: DBMS KNOWLEDGE
+  [T2] Database Management Systems verified (20 entries covering DBMS, SQL, Keys, Normalization, ACID)
+
+▶ TEST 3: OPERATING SYSTEMS KNOWLEDGE
+  [T3] Operating Systems verified (15 entries covering Kernel, Process, Thread, Scheduling, Memory, Deadlocks)
+
+▶ TEST 4: COMPUTER NETWORKS KNOWLEDGE
+  [T4] Computer Networks verified (13 entries covering TCP, UDP, IP, Routing, DNS, OSI)
+
+▶ TEST 5: DATA STRUCTURES AND ALGORITHMS KNOWLEDGE
+  [T5] Data Structures and Algorithms verified (13 entries covering Array, List, Stack, Queue, Tree, Graph, Search, Sort)
+
+▶ TEST 6: TOPIC ASSIGNMENT VALIDATION
+  [T6] Verified all 65 seeded sources have valid topic assignments matching SUPPORTED_TOPICS
+
+▶ TEST 7: DOMAIN ASSIGNMENT VALIDATION
+  [T7] Verified all 65 seeded sources have domain === "Computer Science"
+
+▶ TEST 8: ADMIN DISPLAY INTEGRATION
+  [T8] Admin display list query returned 104 sources correctly formatted for UI
+
+▶ TEST 9: SOURCE STATUS
+  [T9] Verified all 65 initial seeded sources are active
+
+▶ TEST 10: DUPLICATE PREVENTION
+====================================================
+ SEEDING TRUSTED COMPUTER SCIENCE KNOWLEDGE BASE    
+====================================================
+
+  [SKIP] (1/65) "NIST Cloud Computing Definition" already exists in Cloud Computing.
+  [SKIP] (2/65) "On-Demand Self-Service Characteristic" already exists in Cloud Computing.
+  [SKIP] (3/65) "Broad Network Access Characteristic" already exists in Cloud Computing.
+  [SKIP] (4/65) "Resource Pooling and Multi-Tenancy" already exists in Cloud Computing.
+  [SKIP] (5/65) "Rapid Elasticity" already exists in Cloud Computing.
+  [SKIP] (6/65) "Measured Service Model" already exists in Cloud Computing.
+  [SKIP] (7/65) "Infrastructure as a Service (IaaS)" already exists in Cloud Computing.
+  [SKIP] (8/65) "Platform as a Service (PaaS)" already exists in Cloud Computing.
+  [SKIP] (9/65) "Software as a Service (SaaS)" already exists in Cloud Computing.
+  [SKIP] (10/65) "Virtual Machine Hypervisors" already exists in Cloud Computing.
+  [SKIP] (11/65) "OS-Level Container Isolation" already exists in Cloud Computing.
+  [SKIP] (12/65) "Public Cloud Deployment Model" already exists in Cloud Computing.
+  [SKIP] (13/65) "Hybrid Cloud Architecture" already exists in Cloud Computing.
+  [SKIP] (14/65) "Database Management System (DBMS) Definition" already exists in Database Management Systems.
+  [SKIP] (15/65) "Relational Database Model" already exists in Database Management Systems.
+  [SKIP] (16/65) "Primary Key Uniqueness Constraint" already exists in Database Management Systems.
+  [SKIP] (17/65) "Foreign Key Referential Integrity" already exists in Database Management Systems.
+  [SKIP] (18/65) "Structured Query Language (SQL)" already exists in Database Management Systems.
+  [SKIP] (19/65) "ACID Property: Atomicity" already exists in Database Management Systems.
+  [SKIP] (20/65) "ACID Property: Consistency" already exists in Database Management Systems.
+  [SKIP] (21/65) "ACID Property: Isolation" already exists in Database Management Systems.
+  [SKIP] (22/65) "ACID Property: Durability" already exists in Database Management Systems.
+  [SKIP] (23/65) "First Normal Form (1NF)" already exists in Database Management Systems.
+  [SKIP] (24/65) "Second Normal Form (2NF)" already exists in Database Management Systems.
+  [SKIP] (25/65) "Third Normal Form (3NF)" already exists in Database Management Systems.
+  [SKIP] (26/65) "Database Indexing Optimization" already exists in Database Management Systems.
+  [SKIP] (27/65) "Operating System Definition and Role" already exists in Operating Systems.
+  [SKIP] (28/65) "Operating System Kernel" already exists in Operating Systems.
+  [SKIP] (29/65) "Process Execution State Model" already exists in Operating Systems.
+  [SKIP] (30/65) "Thread Execution Unit" already exists in Operating Systems.
+  [SKIP] (31/65) "CPU Preemptive Scheduling" already exists in Operating Systems.
+  [SKIP] (32/65) "Virtual Memory and Paging" already exists in Operating Systems.
+  [SKIP] (33/65) "Page Fault Handling" already exists in Operating Systems.
+  [SKIP] (34/65) "Deadlock Necessary Conditions" already exists in Operating Systems.
+  [SKIP] (35/65) "Semaphore Synchronization Construct" already exists in Operating Systems.
+  [SKIP] (36/65) "Mutex Locking Mechanism" already exists in Operating Systems.
+  [SKIP] (37/65) "Context Switching Overhead" already exists in Operating Systems.
+  [SKIP] (38/65) "System Call Kernel Interface" already exists in Operating Systems.
+  [SKIP] (39/65) "File System Directory Tree Abstraction" already exists in Operating Systems.
+  [SKIP] (40/65) "OSI 7-Layer Reference Model" already exists in Computer Networks.
+  [SKIP] (41/65) "Transmission Control Protocol (TCP)" already exists in Computer Networks.
+  [SKIP] (42/65) "User Datagram Protocol (UDP)" already exists in Computer Networks.
+  [SKIP] (43/65) "Internet Protocol (IP) Addressing" already exists in Computer Networks.
+  [SKIP] (44/65) "Domain Name System (DNS) Resolution" already exists in Computer Networks.
+  [SKIP] (45/65) "Router Packet Forwarding" already exists in Computer Networks.
+  [SKIP] (46/65) "Address Resolution Protocol (ARP)" already exists in Computer Networks.
+  [SKIP] (47/65) "Hypertext Transfer Protocol (HTTP)" already exists in Computer Networks.
+  [SKIP] (48/65) "HTTPS Encryption via TLS/SSL" already exists in Computer Networks.
+  [SKIP] (49/65) "Network Subnetting and CIDR" already exists in Computer Networks.
+  [SKIP] (50/65) "Network Switch (Layer 2)" already exists in Computer Networks.
+  [SKIP] (51/65) "Firewall Access Control Security" already exists in Computer Networks.
+  [SKIP] (52/65) "Connection-Oriented vs Connectionless Communication" already exists in Computer Networks.
+  [SKIP] (53/65) "Array Data Structure" already exists in Data Structures and Algorithms.
+  [SKIP] (54/65) "Singly Linked List Data Structure" already exists in Data Structures and Algorithms.
+  [SKIP] (55/65) "Doubly Linked List" already exists in Data Structures and Algorithms.
+  [SKIP] (56/65) "Stack LIFO Data Structure" already exists in Data Structures and Algorithms.
+  [SKIP] (57/65) "Queue FIFO Data Structure" already exists in Data Structures and Algorithms.
+  [SKIP] (58/65) "Binary Search Tree (BST)" already exists in Data Structures and Algorithms.
+  [SKIP] (59/65) "Graph Adjacency Representation" already exists in Data Structures and Algorithms.
+  [SKIP] (60/65) "Big O Complexity Analysis" already exists in Data Structures and Algorithms.
+  [SKIP] (61/65) "Binary Search Algorithm" already exists in Data Structures and Algorithms.
+  [SKIP] (62/65) "Quick Sort Algorithm" already exists in Data Structures and Algorithms.
+  [SKIP] (63/65) "Merge Sort Algorithm" already exists in Data Structures and Algorithms.
+  [SKIP] (64/65) "Hash Table Collision Resolution" already exists in Data Structures and Algorithms.
+  [SKIP] (65/65) "Recursion Base Case Principle" already exists in Data Structures and Algorithms.
+
+----------------------------------------------------
+ SEEDING COMPLETED SUCCESSFULY!
+ Total inspected: 65
+ Newly Added:     0
+ Skipped:         65
+----------------------------------------------------
+  [T10] Duplicate prevention verified: Re-running seed script added 0 duplicates and skipped all 65 existing records
+
+▶ TEST 11: FIREBASE STORAGE READ VERIFICATION
+  [T11] Direct Firestore read verified for sample doc "Thread Execution Unit" (Text length: 222 chars)
+
+▶ TEST 12: ERROR DETECTION MODULE UNAFFECTED
+  [T12] Error Detection pipeline executed unaffected. Report ID: TvmZWwSgcJvqhUR81ziF
+
+▶ TEST 13: COPIED CONTENT DETECTION UNAFFECTED
+  [T13] Copied Content Detection pipeline executed unaffected. Report ID: 5vY6fxGOiKu1uqJ6EL5r
+
+====================================================
+ 🎉 ALL TASK 6 REPOSITORY POPULATION TESTS PASSED! 
+====================================================

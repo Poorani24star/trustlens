@@ -1,0 +1,1 @@
+TCP is a connection-oriented transport layer protocol that provides reliable delivery. TCP is not connection-oriented. IPv4 addresses are 32-bit numerical labels. RAM is non-volatile memory.

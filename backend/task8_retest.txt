@@ -1,0 +1,63 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 8: STATEMENT EXTRACTION TEST       
+====================================================
+
+▶ TEST 1: SIMPLE DOCUMENT
+  [T1] Extracted 2 statements cleanly from simple text
+
+▶ TEST 2: MULTIPLE PARAGRAPHS
+  [T2] Paragraph separation and paragraph indexing preserved correctly
+
+▶ TEST 3: BULLET LIST
+  [T3] Extracted 3 bullet list items as individual statements
+
+▶ TEST 4: TECHNICAL ABBREVIATIONS
+  [T4] Technical slash term "TCP/IP" protected from incorrect segmentation
+
+▶ TEST 5: DECIMAL NUMBERS
+  [T5] Decimal number "3.12" protected from sentence boundary splitting
+
+▶ TEST 6: HEADINGS FILTERING
+  [T6] Heading "Computer Networks" filtered to ignored while factual statement retained
+
+▶ TEST 7: SHORT FRAGMENTS FILTERING
+  [T7] Short meaningless fragments ("TCP", "Definition") filtered to ignored
+
+▶ TEST 8: MULTIPLE DOCUMENTS INDEPENDENT EXTRACTION
+  [T8] Extracted statements independently for 3 documents:
+       - Cloud: 1 statements
+       - DBMS:  1 statements
+       - Net:   1 statements
+
+▶ TEST 9: DOCUMENT ASSOCIATION
+  [T9] All extracted statements explicitly retain documentId and documentName references
+
+▶ TEST 10: TOPIC ASSOCIATION
+  [T10] Statements inherited primaryTopic and detectedTopics metadata from Task 3
+
+▶ TEST 11: ORIGINAL WORDING PRESERVATION
+  [T11] Original user wording preserved exactly without automatic grammar/spelling correction
+
+▶ TEST 12: CODE CONTENT HANDLING
+  [T12] Code block lines ignored while valid technical statement retained cleanly
+
+▶ TEST 13: REFERENCES AND BIBLIOGRAPHY
+  [T13] Standalone reference entry ignored while inline citation statement retained
+
+▶ TEST 14: EMPTY DOCUMENT
+  [T14] Empty document returned safe empty result (0 ready statements)
+
+▶ TEST 15: EXTRACTION FAILURE / MALFORMED DATA
+  [T15] Malformed input handled safely without throwing error
+
+▶ TEST 16: ERROR DETECTION PIPELINE STAGE ORDER
+  [T16] Error Detection pipeline executed: Validation -> Topic Detection -> Knowledge Retrieval -> Statement Extraction (Ready: 1)
+
+▶ TEST 17: COPIED CONTENT DETECTION UNAFFECTED
+  [T17] Copied Content Detection pipeline executed unaffected. Report ID: HlBCM7CgTMzbA4XabwEj
+
+====================================================
+ 🎉 ALL TASK 8 STATEMENT EXTRACTION TESTS PASSED!   
+====================================================

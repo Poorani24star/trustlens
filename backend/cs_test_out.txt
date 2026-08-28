@@ -1,0 +1,19 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS COMPUTER SCIENCE DOMAIN RESTRICTION TEST 
+====================================================
+
+▶ PREPARATION: Creating Computer Science Knowledge Sources
+  Created Cloud KS ID: W0fcyxYAi7PL2qNzNszm | DBMS KS ID: 4lxRh3y17Ijqw5SGq24Q
+
+▶ TEST 1: CLOUD COMPUTING DOCUMENT
+  [T1-A] Domain accepted: "Computer Science"
+  [T1-B] Detected topics: Cloud Computing, Artificial Intelligence
+
+❌ CS DOMAIN RESTRICTION TEST FAILURE: now is not defined
+ReferenceError: now is not defined
+    at createReport (C:\trustlens\backend\src\services\reportService.js:75:16)
+    at Object.analyzeErrorDetectionDocument (C:\trustlens\backend\src\services\errorDetection\errorDetectionService.js:240:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async runCSDomainRestrictionTests (C:\trustlens\backend\src\tests\testCSDomainRestriction.js:75:18)

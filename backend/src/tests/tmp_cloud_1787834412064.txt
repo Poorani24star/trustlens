@@ -1,0 +1,1 @@
+Cloud computing relies on virtual machines, containers, hypervisors, and auto scaling for scalable cloud infrastructure.

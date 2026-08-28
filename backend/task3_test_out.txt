@@ -1,0 +1,48 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 3: CS TOPIC DETECTION TEST          
+====================================================
+
+▶ TEST 1: CLOUD COMPUTING TOPIC DETECTION
+  [T1] Primary Topic: "Cloud Computing" (Detected: Cloud Computing)
+
+▶ TEST 2: DBMS TOPIC DETECTION
+  [T2] Primary Topic: "Database Management Systems" (Detected: Database Management Systems)
+
+▶ TEST 3: COMPUTER NETWORKS TOPIC DETECTION
+  [T3] Primary Topic: "Computer Networks" (Detected: Computer Networks)
+
+▶ TEST 4: OPERATING SYSTEMS TOPIC DETECTION
+  [T4] Primary Topic: "Operating Systems" (Detected: Operating Systems)
+
+▶ TEST 5: DATA STRUCTURES AND ALGORITHMS TOPIC DETECTION
+  [T5] Primary Topic: "Data Structures and Algorithms" (Detected: Data Structures and Algorithms)
+
+▶ TEST 6: MACHINE LEARNING TOPIC DETECTION
+  [T6] Primary Topic: "Machine Learning" (Detected: Machine Learning)
+
+▶ TEST 7: MULTI-TOPIC DOCUMENT
+  [T7] Primary: "Cloud Computing", Related: "Operating Systems"
+
+▶ TEST 8: GENERIC KEYWORD REPETITION HANDLING
+  [T8] Correctly handled generic term repetition (Primary: "General Computer Science")
+
+▶ TEST 9: GENERAL COMPUTER SCIENCE FALLBACK
+  [T9] Safe fallback triggered: "General Computer Science"
+
+▶ TEST 10: REPORT STORAGE WITH TOPIC METADATA
+  [T10] Report ID je7pb4rB5l8YuZs9ouj1 stored domain="Computer Science", primaryTopic="Cloud Computing", topics=[Cloud Computing]
+
+▶ TEST 11: OLD REPORT COMPATIBILITY
+  [T11] Legacy report loaded safely without crash
+
+▶ TEST 12: ADMIN REPORT METADATA HANDLING
+  [T12] Admin report details safely retrieved primaryTopic="Cloud Computing"
+
+▶ TEST 13: COPIED CONTENT DETECTION UNAFFECTED
+  [T13] Copied Content Detection executed unaffected. Report ID: UrjB4wwBU4ftZlRfW7GK
+
+====================================================
+ 🎉 ALL TASK 3 TOPIC DETECTION TESTS PASSED!        
+====================================================

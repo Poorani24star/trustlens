@@ -1,0 +1,1 @@
+Relational database management systems use SQL for database queries. ACID properties guarantee database transaction reliability.

@@ -1,0 +1,35 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+      TRUSTLENS ADMIN TASK 9 END-TO-END TESTING     
+====================================================
+
+▶ SCENARIO A: NEW USER REGISTRATION & INTEGRATION
+  [A1] Created Student User: e2e_student_1787833260164@trustlens.edu (ID: uid_e2e_student_1787833260164)
+  [A2] User document verified in Firestore users collection
+  [A3] User verified in Admin Users module
+  [A4] Dashboard Total Users: 11 | Analytics Total Users: 11
+  [A5] Verified USER_REGISTERED activity log created
+
+▶ SCENARIO B: USER MANAGEMENT & SUSPENSION
+  [B1] Suspended user e2e_student_1787833260164@trustlens.edu
+  [B2] Firestore user status verified as "suspended"
+  [B3] Verified status in Admin Users module
+  [B4] Verified USER_SUSPENDED activity log created
+  [B5] Analytics Suspended Users count verified: 7
+
+▶ SCENARIO C: KNOWLEDGE SOURCE CREATION & SYNC
+  [C1] Created Knowledge Source: "E2E Reference Standard 1787833260164" (ID: i3JjFqhtPIDrxUOGDXed)
+  [C2] Knowledge Source verified in Firestore
+  [C3] Knowledge Source verified in Knowledge Repository list
+  [C4] Dashboard Active KS: 21 | Analytics Active KS: 21
+  [C5] Verified KNOWLEDGE_SOURCE_CREATED activity log created
+
+▶ SCENARIO D: ERROR DETECTION REPORT LIFECYCLE
+  [D1] Generated Error Detection Report (ID: UY8SGlt4e6mXw7v8l3nb)
+  [D2] Report verified in User Reports & History
+
+❌ TASK 9 END-TO-END TEST FAILURE: adminService.listReports is not a function
+TypeError: adminService.listReports is not a function
+    at runEndToEndVerification (C:\trustlens\backend\src\tests\testTask9EndToEnd.js:153:48)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

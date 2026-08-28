@@ -1,0 +1,11 @@
+{
+  "name": "trustlens-workspace",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix Frontend run dev",
+    "start": "npm --prefix backend start"
+  }
+}

@@ -1,0 +1,99 @@
+Section 1: TCP is a connection-oriented transport protocol providing reliable data transfer.
+
+Section 2: UDP is a connectionless transport protocol without delivery guarantees.
+
+Section 3: IPv4 uses 32-bit addresses for packet routing across the internet.
+
+Section 4: IPv6 uses 128-bit addresses to overcome IPv4 address exhaustion.
+
+Section 5: DNS resolves human-readable domain names into numerical IP addresses.
+
+Section 6: Operating systems manage computer hardware resources and processes.
+
+Section 7: A process is an instance of an executable program in execution.
+
+Section 8: Threads within a process share memory space and open file descriptors.
+
+Section 9: Virtual memory provides an abstraction of physical RAM storage.
+
+Section 10: Relational databases organize structured data into tables of rows and columns.
+
+Section 11: SQL provides standard declarative queries for relational database systems.
+
+Section 12: ACID transactions guarantee atomicity, consistency, isolation, and durability.
+
+Section 13: Binary search operates in logarithmic time complexity on sorted arrays.
+
+Section 14: A stack is a linear data structure following Last In First Out order.
+
+Section 15: A queue is a linear data structure following First In First Out order.
+
+Section 16: Cache memory stores frequently accessed data for high-speed processor access.
+
+Section 17: CPU registers provide rapid data storage inside the processor core.
+
+Section 18: Symmetric encryption algorithms use the same key for encryption and decryption.
+
+Section 19: Asymmetric cryptography utilizes public and private key pairs.
+
+Section 20: Routers operate at the network layer to forward IP packets.
+
+Section 21: TCP is a connection-oriented transport protocol providing reliable data transfer.
+
+Section 22: UDP is a connectionless transport protocol without delivery guarantees.
+
+Section 23: IPv4 uses 32-bit addresses for packet routing across the internet.
+
+Section 24: IPv6 uses 128-bit addresses to overcome IPv4 address exhaustion.
+
+Section 25: DNS resolves human-readable domain names into numerical IP addresses.
+
+Section 26: Operating systems manage computer hardware resources and processes.
+
+Section 27: A process is an instance of an executable program in execution.
+
+Section 28: Threads within a process share memory space and open file descriptors.
+
+Section 29: Virtual memory provides an abstraction of physical RAM storage.
+
+Section 30: Relational databases organize structured data into tables of rows and columns.
+
+Section 31: SQL provides standard declarative queries for relational database systems.
+
+Section 32: ACID transactions guarantee atomicity, consistency, isolation, and durability.
+
+Section 33: Binary search operates in logarithmic time complexity on sorted arrays.
+
+Section 34: A stack is a linear data structure following Last In First Out order.
+
+Section 35: A queue is a linear data structure following First In First Out order.
+
+Section 36: Cache memory stores frequently accessed data for high-speed processor access.
+
+Section 37: CPU registers provide rapid data storage inside the processor core.
+
+Section 38: Symmetric encryption algorithms use the same key for encryption and decryption.
+
+Section 39: Asymmetric cryptography utilizes public and private key pairs.
+
+Section 40: Routers operate at the network layer to forward IP packets.
+
+Section 41: TCP is a connection-oriented transport protocol providing reliable data transfer.
+
+Section 42: UDP is a connectionless transport protocol without delivery guarantees.
+
+Section 43: IPv4 uses 32-bit addresses for packet routing across the internet.
+
+Section 44: IPv6 uses 128-bit addresses to overcome IPv4 address exhaustion.
+
+Section 45: DNS resolves human-readable domain names into numerical IP addresses.
+
+Section 46: Operating systems manage computer hardware resources and processes.
+
+Section 47: A process is an instance of an executable program in execution.
+
+Section 48: Threads within a process share memory space and open file descriptors.
+
+Section 49: Virtual memory provides an abstraction of physical RAM storage.
+
+Section 50: Relational databases organize structured data into tables of rows and columns.

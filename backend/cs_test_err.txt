@@ -1,0 +1,52 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS COMPUTER SCIENCE DOMAIN RESTRICTION TEST 
+====================================================
+
+▶ PREPARATION: Creating Computer Science Knowledge Sources
+  Created Cloud KS ID: ulG5Atqn3OOgTr9CDIv4 | DBMS KS ID: hP8R3ac02B3vlPiuZpbi
+
+▶ TEST 1: CLOUD COMPUTING DOCUMENT
+  [T1-A] Domain accepted: "Computer Science"
+  [T1-B] Detected topics: Cloud Computing, Artificial Intelligence
+  [T1-C] Error Detection completed successfully. Report ID: m8gEKOFUUxmioq0mGkbU
+
+▶ TEST 2: DBMS DOCUMENT
+  [T2-A] Domain accepted: "Computer Science"
+  [T2-B] Detected topics: Database Management Systems, Artificial Intelligence
+  [T2-C] DBMS Error Detection completed successfully
+
+▶ TEST 3: COMPUTER NETWORKS DOCUMENT
+  [T3-A] Domain accepted: "Computer Science"
+  [T3-B] Detected topics: Computer Networks
+  [T3-C] Networks Error Detection completed successfully
+
+▶ TEST 4: UNSUPPORTED DOMAIN DOCUMENT (MEDICINE/CARDIOLOGY)
+  [T4-A] Domain correctly rejected. DetectedDomain: "Unsupported"
+  [T4-B] Supported Domain Message: "TrustLens Error Detection currently supports Computer Science documents only."
+  [T4-C] Verified error detection blocked analysis and returned user-friendly message
+
+▶ TEST 5: INACTIVE KNOWLEDGE SOURCE EXCLUSION
+  [T5-A] Deactivated Cloud KS
+  [T5-B] Verified inactive knowledge source is EXCLUDED from factual check active sources query
+
+▶ TEST 6: REPORT STORAGE VERIFICATION
+  [T6-A] Report domain verified in Firestore: "Computer Science"
+  [T6-B] Report detectedTopics verified in Firestore: Cloud Computing, Artificial Intelligence
+
+▶ TEST 7: REPORTS & HISTORY INTEGRATION
+  [T7] Report verified in User Reports & History listing
+
+▶ TEST 8: ADMIN REPORTS INTEGRATION
+  [T8] Admin Report Details verified. Type: error-detection | Domain: Computer Science
+
+▶ TEST 9: OLD REPORT COMPATIBILITY
+  [T9] Legacy report without domain field retrieved safely without crashing
+
+▶ TEST 10: COPIED CONTENT DETECTION UNAFFECTED
+  [T10] Copied Content Detection executed independently and successfully! Report ID: fXF9CNK638MaUJUiyTZm
+
+====================================================
+ 🎉 ALL 10 COMPUTER SCIENCE DOMAIN TESTS PASSED!
+====================================================

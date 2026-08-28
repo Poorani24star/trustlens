@@ -1,0 +1,109 @@
+[Firebase Admin] Loaded service account from trustlens-30294-firebase-adminsdk-fbsvc-58e4549295.json
+[Firebase Admin] Firebase Admin SDK initialized successfully.
+====================================================
+ TRUSTLENS TASK 2: CS DOMAIN VALIDATION TEST        
+====================================================
+
+▶ TEST 1: CLOUD COMPUTING DOCUMENT (ACCEPTED)
+  [T1] Accepted: domain="Computer Science", confidence=0.95, matches=5
+
+▶ TEST 2: DBMS DOCUMENT (ACCEPTED)
+  [T2] Accepted: domain="Computer Science", confidence=0.98, matches=7
+
+▶ TEST 3: COMPUTER NETWORKS DOCUMENT (ACCEPTED)
+  [T3] Accepted: domain="Computer Science", confidence=0.99, matches=8
+
+▶ TEST 4: OPERATING SYSTEMS DOCUMENT (ACCEPTED)
+  [T4] Accepted: domain="Computer Science", confidence=0.99, matches=8
+
+▶ TEST 5: UNRELATED DOCUMENT (REJECTED)
+  [T5] Correctly rejected: supported=false, message="TrustLens Error Detection currently supports Computer Science documents only. Please upload a document related to a supported Computer Science topic."
+
+▶ TEST 6: GENERIC KEYWORD FALSE POSITIVE (REJECTED)
+  [T6] Correctly prevented false positive for isolated generic word "network"
+
+▶ TEST 7: EMPTY DOCUMENT (CONTENT ERROR)
+  [T7] Correctly handled empty text as content error: "Unable to extract sufficient text from this document for analysis."
+
+▶ TEST 8: VERY SHORT TEXT (CONTENT ERROR)
+  [T8] Correctly handled short text as content error: "The document does not contain enough readable content for domain analysis."
+
+▶ TEST 9 & 11: SUPPORTED CS ERROR DETECTION PIPELINE
+  [T9 DEBUG analysisRes]: {
+  "success": true,
+  "message": "Error detection analysis completed successfully",
+  "reportId": "5ozUQxDNmwfe5VAHDT90",
+  "reportType": "error_detection",
+  "domain": "Computer Science",
+  "detectedTopics": [],
+  "summary": {
+    "totalStatements": 1,
+    "analyzedStatements": 1,
+    "verified": 1,
+    "contradictions": 0,
+    "contradicted": 0,
+    "insufficientEvidence": 0,
+    "notAnalyzed": 0,
+    "domain": "Computer Science",
+    "detectedTopics": []
+  },
+  "analysis": {
+    "analysisId": "analysis_1787835793617_w6ps3",
+    "document": {
+      "temporaryUploadId": "upload_1787835793122_5szd3u1",
+      "originalName": "SupportedDoc_1787835791716.txt",
+      "mimeType": "text/plain",
+      "domain": "Computer Science",
+      "detectedTopics": []
+    },
+    "summary": {
+      "totalStatements": 1,
+      "analyzedStatements": 1,
+      "verified": 1,
+      "contradictions": 0,
+      "contradicted": 0,
+      "insufficientEvidence": 0,
+      "notAnalyzed": 0,
+      "domain": "Computer Science",
+      "detectedTopics": []
+    },
+    "results": [
+      {
+        "statementId": "statement-1",
+        "index": 1,
+        "statement": "Cloud computing provides virtual machines, containers, and cloud infrastructure for execution.",
+        "normalizedStatement": "cloud computing provides virtual machines containers and cloud infrastructure for execution",
+        "classification": "verified",
+        "status": "verified",
+        "similarityScore": 0.9154,
+        "severity": "low",
+        "reason": "Statement strongly supported by trusted evidence (Similarity: 91.5%).",
+        "explanation": "Statement strongly supported by trusted evidence (Similarity: 91.5%).",
+        "evidence": {
+          "text": "Cloud computing provides virtual machines, containers, and cloud infrastructure for scalable execution.",
+          "sourceId": "Dz7aRo9JZUsUfZui6HBj",
+          "sourceTitle": "Task 2 Reference Source 1787835756778",
+          "sourceName": "Task 2 Reference Source 1787835756778",
+          "sourceType": "text"
+        },
+        "algorithm": {
+          "method": "tfidf_cosine_similarity",
+          "candidateCount": 5,
+          "comparedCount": 5,
+          "keywordOverlapScore": 0.8889
+        }
+      }
+    ]
+  }
+}
+  [T9 & T11] Supported document passed validation and created report ID: 5ozUQxDNmwfe5VAHDT90
+
+▶ TEST 12: UNSUPPORTED DOCUMENT NO REPORT CREATION
+  [T12] Verified unsupported document stopped analysis and did NOT create any report
+
+▶ TEST 10: COPIED CONTENT DETECTION UNAFFECTED
+  [T10] Copied Content Detection executed unaffected. Report ID: s4vhiy3rWAwjQCWCJCKZ
+
+====================================================
+ 🎉 ALL TASK 2 DOMAIN VALIDATION TESTS PASSED!       
+====================================================

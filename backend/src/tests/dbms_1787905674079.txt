@@ -1,0 +1,1 @@
+Database management systems use SQL queries, normalization, and ACID transactions.

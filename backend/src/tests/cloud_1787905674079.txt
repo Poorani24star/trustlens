@@ -1,0 +1,1 @@
+Cloud computing relies on virtual machines and Docker containers for deployment.

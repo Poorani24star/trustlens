@@ -1,0 +1,5 @@
+TCP is a connection-oriented transport layer protocol.
+
+TCP does not provide reliable communication.
+
+Quantum mesh relays bypass routing protocols entirely.

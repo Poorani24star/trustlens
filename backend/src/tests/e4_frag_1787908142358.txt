@@ -1,0 +1,10 @@
+Chapter 4: Transport Layer Protocols
+
+TCP provides reliable, ordered, and error-checked
+delivery of a stream of octets between applications.
+
+• Database
+
+• TCP guarantees in-order delivery.
+
+-- Page 1 of 4 --

@@ -1,0 +1,5 @@
+TCP is a connection-oriented transport layer protocol that provides reliable delivery.
+
+UDP is a connectionless protocol that does not guarantee packet delivery.
+
+DNS translates human-readable hostnames into IP addresses.
