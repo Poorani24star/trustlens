@@ -1,0 +1,17 @@
+export const mockActivities = [
+  { id: 'a1',  user: 'Dr. Kumar',       role: 'faculty',    action: 'Uploaded assignments',      module: 'Copied Content',        datetime: 'Today, 10:42 AM',    status: 'completed' },
+  { id: 'a2',  user: 'Aarav Raj',       role: 'student',    action: 'Uploaded document',          module: 'Error Detection',       datetime: 'Today, 10:20 AM',    status: 'completed' },
+  { id: 'a3',  user: 'Ananya Sharma',   role: 'researcher', action: 'Uploaded research paper',    module: 'Error Detection',       datetime: 'Today, 09:55 AM',    status: 'completed' },
+  { id: 'a4',  user: 'TrustLens Admin', role: 'admin',      action: 'Added trusted source',       module: 'Knowledge Repository',  datetime: 'Yesterday, 04:30 PM', status: 'completed' },
+  { id: 'a5',  user: 'Priya Nair',      role: 'student',    action: 'Uploaded document',          module: 'Error Detection',       datetime: 'Yesterday, 03:15 PM', status: 'failed'    },
+  { id: 'a6',  user: 'Dr. Meena Iyer',  role: 'faculty',    action: 'Uploaded assignments',       module: 'Copied Content',        datetime: 'Yesterday, 02:00 PM', status: 'completed' },
+  { id: 'a7',  user: 'Vikram Singh',    role: 'researcher', action: 'Uploaded paper batch',       module: 'Copied Content',        datetime: 'Yesterday, 11:30 AM', status: 'completed' },
+  { id: 'a8',  user: 'Rohan Mehta',     role: 'student',    action: 'Uploaded document',          module: 'Error Detection',       datetime: 'Yesterday, 10:05 AM', status: 'processing' },
+  { id: 'a9',  user: 'TrustLens Admin', role: 'admin',      action: 'Archived knowledge source',  module: 'Knowledge Repository',  datetime: 'Aug 15, 2026',        status: 'completed' },
+  { id: 'a10', user: 'Sneha Patel',     role: 'student',    action: 'Uploaded document',          module: 'Error Detection',       datetime: 'Aug 15, 2026',        status: 'completed' },
+  { id: 'a11', user: 'Prof. Lata Rao',  role: 'faculty',    action: 'Uploaded assignments',       module: 'Copied Content',        datetime: 'Aug 14, 2026',        status: 'completed' },
+  { id: 'a12', user: 'Arjun Das',       role: 'student',    action: 'Registered account',         module: 'Authentication',        datetime: 'Aug 14, 2026',        status: 'completed' },
+  { id: 'a13', user: 'Kiran Bose',      role: 'researcher', action: 'Uploaded research paper',    module: 'Error Detection',       datetime: 'Aug 13, 2026',        status: 'failed'    },
+  { id: 'a14', user: 'TrustLens Admin', role: 'admin',      action: 'Added trusted source',       module: 'Knowledge Repository',  datetime: 'Aug 12, 2026',        status: 'completed' },
+  { id: 'a15', user: 'Dr. Kumar',       role: 'faculty',    action: 'Downloaded report',          module: 'Copied Content',        datetime: 'Aug 12, 2026',        status: 'completed' },
+];
