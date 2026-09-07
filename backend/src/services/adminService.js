@@ -60,7 +60,13 @@ async function getDashboardStats() {
   });
 
   // 2. Fetch Report Stats
-  const reportsSnap = await db.collection('reports').get();
+  let reportsSnap = { docs: [], empty: true, forEach: () => {} };
+  try {
+    reportsSnap = await db.collection('reports').get();
+  } catch (dbErr) {
+    console.warn('[AdminService] Firestore reports fetch warning:', dbErr.message);
+  }
+
   const reportStats = {
     total: 0,
     errorDetection: 0,
@@ -71,9 +77,11 @@ async function getDashboardStats() {
   };
 
   const recentReports = [];
+  const processedReportIds = new Set();
 
   reportsSnap.forEach(doc => {
     const r = doc.data();
+    processedReportIds.add(doc.id);
     reportStats.total++;
 
     const type = (r.reportType || r.type || '').toLowerCase();
@@ -93,6 +101,34 @@ async function getDashboardStats() {
       createdAt: r.createdAt ? (typeof r.createdAt.toDate === 'function' ? r.createdAt.toDate() : new Date(r.createdAt)) : new Date(),
     });
   });
+
+  // Include session memory reports
+  const reportService = require('./reportService');
+  if (typeof reportService.getMemoryReports === 'function') {
+    const memReports = reportService.getMemoryReports();
+    for (const mr of memReports) {
+      if (!processedReportIds.has(mr.id)) {
+        processedReportIds.add(mr.id);
+        reportStats.total++;
+        const type = (mr.reportType || mr.type || '').toLowerCase();
+        if (type.includes('error')) reportStats.errorDetection++;
+        else if (type.includes('copied') || type.includes('content')) reportStats.copiedContent++;
+
+        const status = (mr.status || 'completed').toLowerCase();
+        if (status === 'completed') reportStats.completed++;
+        else if (status === 'failed') reportStats.failed++;
+        else reportStats.analyzing++;
+
+        recentReports.push({
+          id: mr.id,
+          title: mr.title || 'Analysis Report',
+          type: type.includes('copied') ? 'Copied Content' : 'Error Detection',
+          status: mr.status || 'completed',
+          createdAt: mr.createdAt ? new Date(mr.createdAt) : new Date(),
+        });
+      }
+    }
+  }
 
   // 3. Fetch Knowledge Source Stats
   const ksSnap = await db.collection('knowledgeSources').get();
@@ -413,6 +449,16 @@ async function listSystemReports(filters = {}) {
 
   const reportsSnap = await db.collection('reports').get();
   const userCache = new Map();
+
+  try {
+    const usersSnap = await db.collection('users').get();
+    usersSnap.forEach(uDoc => {
+      userCache.set(uDoc.id, uDoc.data());
+    });
+  } catch (uErr) {
+    console.warn('[AdminService] Bulk user cache warning:', uErr.message);
+  }
+
   let reports = [];
 
   for (const doc of reportsSnap.docs) {
@@ -423,18 +469,6 @@ async function listSystemReports(filters = {}) {
 
     // Resolve owner details from users collection if missing
     if (data.userId && (!userName || !userEmail || !userRole)) {
-      if (!userCache.has(data.userId)) {
-        try {
-          const uDoc = await db.collection('users').doc(data.userId).get();
-          if (uDoc.exists) {
-            userCache.set(data.userId, uDoc.data());
-          } else {
-            userCache.set(data.userId, null);
-          }
-        } catch {
-          userCache.set(data.userId, null);
-        }
-      }
       const cached = userCache.get(data.userId);
       if (cached) {
         userName  = userName  || cached.name  || 'User';
@@ -450,6 +484,25 @@ async function listSystemReports(filters = {}) {
       userEmail: userEmail || '',
       userRole: userRole || 'student',
     });
+  }
+
+  // Include session memory reports
+  const reportService = require('./reportService');
+  if (typeof reportService.getMemoryReports === 'function') {
+    const memReports = reportService.getMemoryReports();
+    const existingIds = new Set(reports.map(r => r.id));
+    for (const mr of memReports) {
+      if (!existingIds.has(mr.id)) {
+        existingIds.add(mr.id);
+        reports.push({
+          id: mr.id,
+          ...serializeTimestamps(mr),
+          userName: mr.userName || 'User',
+          userEmail: mr.userEmail || '',
+          userRole: mr.userRole || 'student',
+        });
+      }
+    }
   }
 
   // Filter by report type

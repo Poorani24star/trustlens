@@ -16,11 +16,20 @@ async function extractZipArchive(zipFilePath, extractDocumentTextFn) {
     throw err;
   }
 
+  const extractor = extractDocumentTextFn || require('./documentExtractionService').extractDocumentText;
   const tempExtractDir = path.join(uploadsDir, `temp_zip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
 
   try {
     fs.mkdirSync(tempExtractDir, { recursive: true });
-    const zip = new AdmZip(zipFilePath);
+    let zip;
+    try {
+      zip = new AdmZip(zipFilePath);
+    } catch (parseErr) {
+      const err = new Error('Unable to extract the ZIP file. The archive is corrupted or invalid.');
+      err.statusCode = 400;
+      throw err;
+    }
+
     const zipEntries = zip.getEntries();
 
     if (!zipEntries || zipEntries.length === 0) {
@@ -39,7 +48,7 @@ async function extractZipArchive(zipFilePath, extractDocumentTextFn) {
 
       // Security Check: Path Traversal Defense
       const targetPath = path.resolve(tempExtractDir, entry.entryName);
-      if (!targetPath.startsWith(resolvedBase)) {
+      if (entry.entryName.includes('..') || !targetPath.startsWith(resolvedBase)) {
         const err = new Error(`Security Violation: Path traversal detected in ZIP entry '${entry.entryName}'`);
         err.statusCode = 400;
         throw err;
@@ -69,7 +78,7 @@ async function extractZipArchive(zipFilePath, extractDocumentTextFn) {
       const extractedFilePath = path.join(tempExtractDir, entry.name);
       fs.writeFileSync(extractedFilePath, entry.getData());
 
-      const result = await extractDocumentTextFn(extractedFilePath, entry.name);
+      const result = await extractor(extractedFilePath, entry.name);
       extractedDocuments.push({
         originalName: entry.name,
         fileType: path.extname(entry.name).substring(1).toLowerCase(),

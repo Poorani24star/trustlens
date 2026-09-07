@@ -99,17 +99,16 @@ async function analyzeCopiedContent(user, temporaryUploadId) {
     const isZip = mime === 'application/zip' || fileName.toLowerCase().endsWith('.zip');
 
     if (isZip) {
-      const zipExtractedFiles = await extractZipArchive(file.uploadPath);
+      const zipResult = await extractDocumentText(file.uploadPath, file.originalName, file.mimeType);
+      const zipDocs = zipResult?.documents || [];
 
-      for (const extractedFile of zipExtractedFiles) {
-        const textResult = await extractDocumentText(extractedFile.extractedPath, extractedFile.fileName, extractedFile.mimeType);
-        const text = textResult.extraction ? textResult.extraction.text : '';
-
+      for (const doc of zipDocs) {
+        const text = doc.extraction?.text || '';
         if (text && text.trim().length > 0) {
           extractedDocuments.push({
             documentId: `doc-${docCounter++}`,
-            originalName: extractedFile.fileName,
-            mimeType: extractedFile.mimeType,
+            originalName: doc.originalName,
+            mimeType: doc.mimeType || `application/${doc.fileType || 'pdf'}`,
             extractedText: text,
           });
         }

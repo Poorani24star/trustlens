@@ -143,6 +143,9 @@ async function createReport(user, reportType, title, documentMeta, summaryMeta, 
       await batch.commit();
     }
 
+    if (fallbackId !== reportRef.id) {
+      memoryReportCache.delete(fallbackId);
+    }
     memoryReportCache.set(reportRef.id, { ...reportData, id: reportRef.id, reportId: reportRef.id });
     return reportRef.id;
   } catch (dbErr) {
@@ -384,40 +387,52 @@ async function deleteUserReport(reportId, userUid) {
  */
 async function getUserReportStats(userUid) {
   const db = getDb();
-  if (!db) {
-    return {
-      totalReports: 0,
-      errorDetectionReports: 0,
-      copiedContentReports: 0,
-      recentReports: 0,
-    };
-  }
-
-  const snapshot = await db.collection('reports').where('userId', '==', userUid).get();
-
   let totalReports = 0;
   let errorDetectionReports = 0;
   let copiedContentReports = 0;
   let recentReports = 0;
-
   const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  const seenIds = new Set();
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    totalReports++;
+  if (db) {
+    try {
+      const snapshot = await db.collection('reports').where('userId', '==', userUid).get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        seenIds.add(doc.id);
+        totalReports++;
 
-    const normType = (data.reportType || data.type || '').toLowerCase().replace('_', '-');
-    if (normType === 'error-detection') errorDetectionReports++;
-    if (normType === 'copied-content') copiedContentReports++;
+        const normType = (data.reportType || data.type || '').toLowerCase().replace('_', '-');
+        if (normType === 'error-detection') errorDetectionReports++;
+        if (normType === 'copied-content') copiedContentReports++;
 
-    const createdAtMs = data.createdAt && typeof data.createdAt.toDate === 'function' 
-      ? data.createdAt.toDate().getTime() 
-      : 0;
+        const createdAtMs = data.createdAt && typeof data.createdAt.toDate === 'function' 
+          ? data.createdAt.toDate().getTime() 
+          : (data.createdAt ? new Date(data.createdAt).getTime() : 0);
 
-    if (createdAtMs >= sevenDaysAgo) {
-      recentReports++;
+        if (createdAtMs >= sevenDaysAgo) {
+          recentReports++;
+        }
+      });
+    } catch (dbErr) {
+      console.warn('[ReportService] Error fetching user report stats from Firestore:', dbErr.message);
     }
-  });
+  }
+
+  // Include any session memory reports
+  for (const [id, memRep] of memoryReportCache.entries()) {
+    if (memRep.userId === userUid && !seenIds.has(id)) {
+      seenIds.add(id);
+      totalReports++;
+      const normType = (memRep.reportType || memRep.type || '').toLowerCase().replace('_', '-');
+      if (normType === 'error-detection') errorDetectionReports++;
+      if (normType === 'copied-content') copiedContentReports++;
+      const createdAtMs = memRep.createdAt ? new Date(memRep.createdAt).getTime() : 0;
+      if (createdAtMs >= sevenDaysAgo) {
+        recentReports++;
+      }
+    }
+  }
 
   return {
     totalReports,
@@ -449,6 +464,10 @@ async function findReportByUploadId(userUid, uploadId) {
   }
 }
 
+function getMemoryReports() {
+  return Array.from(memoryReportCache.values());
+}
+
 module.exports = {
   createReport,
   listUserReports,
@@ -456,5 +475,6 @@ module.exports = {
   deleteUserReport,
   getUserReportStats,
   findReportByUploadId,
+  getMemoryReports,
   serializeTimestamps,
 };

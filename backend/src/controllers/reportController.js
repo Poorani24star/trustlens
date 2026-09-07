@@ -28,7 +28,20 @@ async function listReports(req, res, next) {
  */
 async function getReportStats(req, res, next) {
   try {
-    const stats = await reportService.getUserReportStats(req.user.uid);
+    let stats;
+    if (req.user?.role === 'admin') {
+      const adminService = require('../services/adminService');
+      const dash = await adminService.getDashboardStats();
+      const rep = dash?.reports || {};
+      stats = {
+        totalReports: rep.total || 0,
+        errorDetectionReports: rep.errorDetection || 0,
+        copiedContentReports: rep.copiedContent || 0,
+        recentReports: rep.total || 0,
+      };
+    } else {
+      stats = await reportService.getUserReportStats(req.user.uid);
+    }
     return res.status(200).json({
       success: true,
       stats,

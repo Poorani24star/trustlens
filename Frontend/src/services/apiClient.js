@@ -28,7 +28,9 @@ export async function apiRequest(endpoint, options = {}) {
       const raw = sessionStorage.getItem('trustlens_user');
       if (raw) {
         const u = JSON.parse(raw);
-        token = u.token || `demo-token-${u.uid || u.email || 'user'}`;
+        if (u && u.token && !u.token.startsWith('demo-token-')) {
+          token = u.token;
+        }
       }
     } catch (e) {
       // Ignore session read error

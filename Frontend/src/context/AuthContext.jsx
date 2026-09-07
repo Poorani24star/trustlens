@@ -3,7 +3,6 @@ import {
   login as apiLogin, 
   logout as apiLogout, 
   register as apiRegister, 
-  getStoredUser, 
   getRoleRedirect,
   subscribeToAuthChanges 
 } from '../services/authService';
@@ -11,7 +10,7 @@ import {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => getStoredUser());
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
@@ -22,7 +21,7 @@ export function AuthProvider({ children }) {
         setAuthError(errorMsg);
         setUser(null);
       } else {
-        setUser(u || getStoredUser());
+        setUser(u);
         setAuthError(null);
       }
       setLoading(false);

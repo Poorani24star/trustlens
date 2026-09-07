@@ -66,4 +66,5 @@ async function extractDocumentText(filePath, originalName, mimeType) {
 
 module.exports = {
   extractDocumentText,
+  extractZipArchive,
 };

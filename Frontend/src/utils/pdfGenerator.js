@@ -7,6 +7,13 @@ import { jsPDF } from 'jspdf';
 export function generatePdfReport(report) {
   if (!report) return;
 
+  const summary = report.summary || {};
+  const isErrorDetection =
+    report.reportType === 'error-detection' ||
+    report.reportType === 'error_detection' ||
+    report.type === 'error-detection' ||
+    report.type === 'error_detection';
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
@@ -32,12 +39,6 @@ export function generatePdfReport(report) {
       y = 45;
     }
   }
-
-  const isErrorDetection =
-    report.reportType === 'error-detection' ||
-    report.reportType === 'error_detection' ||
-    report.type === 'error-detection' ||
-    report.type === 'error_detection';
 
   // 1. TrustLens Header Banner
   doc.setFillColor(37, 99, 235); // Blue 600
@@ -96,7 +97,6 @@ export function generatePdfReport(report) {
   doc.text('Summary Statistics', margin, y);
   y += 15;
 
-  const summary = report.summary || {};
   if (isErrorDetection) {
     const total = summary.totalStatements ?? summary.analyzedStatements ?? 0;
     const supported = summary.supported ?? summary.verified ?? 0;
@@ -250,7 +250,7 @@ export function generatePdfReport(report) {
     }
   } else {
     // Copied content findings
-    const pairs = report.documentPairs || [];
+    const pairs = report.documentPairs || report.pairResults || [];
     if (pairs.length === 0) {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');
@@ -259,12 +259,55 @@ export function generatePdfReport(report) {
       y += 20;
     } else {
       pairs.forEach((pair, idx) => {
-        checkPageOverflow(40);
+        checkPageOverflow(50);
+        const nameA = pair.documentA?.originalName || pair.documentA?.name || pair.docA?.name || pair.doc1 || 'Document A';
+        const nameB = pair.documentB?.originalName || pair.documentB?.name || pair.docB?.name || pair.doc2 || 'Document B';
+        const score = pair.overallMatchedContentPercentage ?? pair.similarity ?? pair.similarityScore ?? pair.comparison?.overallSimilarity ?? 0;
+        const totalMatches = pair.totalMatches ?? pair.matches?.length ?? (((pair.exactMatches || 0) + (pair.nearMatches || 0)) || 0);
+
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(51, 65, 85);
-        doc.text(`Pair #${idx + 1}: ${pair.docA?.name || pair.doc1} vs ${pair.docB?.name || pair.doc2} (${pair.similarityScore}% Similarity)`, margin, y);
-        y += 15;
+        doc.setFontSize(9.5);
+        doc.setTextColor(30, 41, 59);
+        const headerText = `Pair #${idx + 1}: ${nameA} vs ${nameB}`;
+        const headerLines = doc.splitTextToSize(headerText, contentWidth);
+        checkPageOverflow(headerLines.length * 12 + 25);
+        doc.text(headerLines, margin, y);
+        y += headerLines.length * 11 + 2;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        const statusLabel = score >= 70 ? 'High Similarity' : score >= 30 ? 'Moderate Similarity' : 'No Significant Similarity';
+        doc.text(`Similarity: ${score}%  |  Matched Sections: ${totalMatches}  |  Classification: ${statusLabel}`, margin + 8, y);
+        y += 16;
+
+        // Render matching snippets if present
+        if (pair.matches && pair.matches.length > 0) {
+          const sampleMatches = pair.matches.slice(0, 3);
+          sampleMatches.forEach((m, mIdx) => {
+            const snippetA = m.documentAPassage || m.documentA?.text || m.passageA || '';
+            const mScore = m.similarity || m.similarityScore || 100;
+            const mType = (m.matchType || 'exact_match').replace(/_/g, ' ').toUpperCase();
+
+            if (snippetA) {
+              const snippetText = `Match ${mIdx + 1} (${mType} - ${mScore}%): "${snippetA}"`;
+              const snippetLines = doc.splitTextToSize(snippetText, contentWidth - 24);
+              checkPageOverflow(snippetLines.length * 10 + 14);
+
+              doc.setFillColor(248, 250, 252);
+              doc.rect(margin + 8, y, contentWidth - 16, snippetLines.length * 10 + 6, 'F');
+              doc.setDrawColor(226, 232, 240);
+              doc.rect(margin + 8, y, contentWidth - 16, snippetLines.length * 10 + 6, 'S');
+
+              doc.setFont('helvetica', 'italic');
+              doc.setFontSize(7.5);
+              doc.setTextColor(51, 65, 85);
+              doc.text(snippetLines, margin + 14, y + 9);
+              y += snippetLines.length * 10 + 12;
+            }
+          });
+        }
+        y += 6;
       });
     }
   }

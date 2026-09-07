@@ -5,8 +5,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import AdminStatCard from '../../components/admin/AdminStatCard';
 import Button from '../../components/Button';
 import { useToast } from '../../components/ui/ToastProvider';
-import { listAdminReports } from '../../services/adminService';
-import { getReportSummary } from '../../services/reportService';
+import { listAdminReports, getDashboardStats } from '../../services/adminService';
 import { ROLE_LABELS, ROLE_COLORS, ROLE_FALLBACK_COLOR } from '../../constants/roles';
 
 const PAGE_SIZE = 10;
@@ -55,16 +54,17 @@ export default function AdminReports() {
     reportsFailed: 0,
   });
 
-  // Fetch Summary Stats
+  // Fetch Summary Stats from Admin Dashboard system metrics
   useEffect(() => {
-    getReportSummary()
-      .then(stats => {
+    getDashboardStats()
+      .then(data => {
+        const rep = data?.reports || {};
         setReportStats({
-          totalAnalyses: stats.totalReports || 0,
-          errorDetectionAnalyses: stats.errorDetectionReports || 0,
-          copiedContentAnalyses: stats.copiedContentReports || 0,
-          reportsGenerated: stats.totalReports || 0,
-          reportsFailed: 0,
+          totalAnalyses: rep.total || 0,
+          errorDetectionAnalyses: rep.errorDetection || 0,
+          copiedContentAnalyses: rep.copiedContent || 0,
+          reportsGenerated: rep.completed || rep.total || 0,
+          reportsFailed: rep.failed || 0,
         });
       })
       .catch(err => console.warn('[AdminReports] Report summary notice:', err.message))
@@ -80,7 +80,33 @@ export default function AdminReports() {
         status: statusFilter,
         search,
       });
-      setReports(data);
+      setReports(data || []);
+
+      // If initial summary stats were empty, sync with system reports
+      if (Array.isArray(data) && data.length > 0) {
+        setReportStats(prev => {
+          if (prev.totalAnalyses > 0 && (typeFilter !== 'all' || search)) return prev;
+          let ed = 0;
+          let cc = 0;
+          let comp = 0;
+          let fail = 0;
+          data.forEach(r => {
+            const rt = (r.reportType || r.type || '').toLowerCase();
+            if (rt.includes('copied') || rt.includes('content')) cc++;
+            else ed++;
+            const st = (r.status || 'completed').toLowerCase();
+            if (st === 'failed') fail++;
+            else comp++;
+          });
+          return {
+            totalAnalyses: Math.max(prev.totalAnalyses, data.length),
+            errorDetectionAnalyses: Math.max(prev.errorDetectionAnalyses, ed),
+            copiedContentAnalyses: Math.max(prev.copiedContentAnalyses, cc),
+            reportsGenerated: Math.max(prev.reportsGenerated, comp),
+            reportsFailed: Math.max(prev.reportsFailed, fail),
+          };
+        });
+      }
     } catch (err) {
       showToast(err.message || 'Failed to load system reports', 'error');
     } finally {

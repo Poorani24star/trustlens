@@ -53,39 +53,64 @@ export async function getCurrentUserProfile() {
 }
 
 /**
- * Login using Firebase Auth & backend profile retrieval
+ * Login using Firebase Auth & backend profile retrieval.
+ * Strictly verifies credentials against Firebase Authentication.
  */
 export async function login(email, password) {
+  const trimmedEmail = (email || '').trim();
+
+  // Validate form input before sending request
+  if (!trimmedEmail) {
+    throw new Error('Please enter your email address.');
+  }
+  if (!password) {
+    throw new Error('Please enter your password.');
+  }
+
   try {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
+    // 1. Authenticate with Firebase Auth
+    const credential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
     const user = credential.user;
-    
-    // Fetch user profile from backend
+
+    // 2. Fetch authenticated user profile from backend Firestore
+    let backendUser = null;
     try {
-      const backendUser = await getCurrentUserProfile();
-      if (backendUser) return backendUser;
+      backendUser = await getCurrentUserProfile();
     } catch (err) {
-      if (err.isSuspended) throw err;
+      if (err.isSuspended) {
+        await firebaseSignOut(auth);
+        setStoredUser(null);
+        throw new Error('Your account has been suspended. Please contact an administrator.');
+      }
     }
 
-    // Fallback profile if profile not created in Firestore yet
-    const fallbackRole = email.includes('admin') ? 'admin' : email.includes('faculty') ? 'faculty' : email.includes('researcher') ? 'researcher' : 'student';
+    if (backendUser) {
+      if (backendUser.status === 'suspended') {
+        await firebaseSignOut(auth);
+        setStoredUser(null);
+        throw new Error('Your account has been suspended. Please contact an administrator.');
+      }
+      setStoredUser(backendUser);
+      return backendUser;
+    }
+
+    // 3. Fallback safe profile if user profile not yet created in Firestore
     const safeUser = {
       uid: user.uid,
-      name: user.displayName || email.split('@')[0],
+      name: user.displayName || trimmedEmail.split('@')[0],
       email: user.email,
-      role: fallbackRole,
+      role: 'student', // Safe default: never infer admin privileges from email string
       status: 'active',
     };
-    
-    // Create profile in Firestore if missing
+
+    // Attempt to register initial profile in Firestore
     try {
       await apiRequest('/users/profile', {
         method: 'POST',
         body: JSON.stringify({ name: safeUser.name, role: safeUser.role }),
       });
-    } catch (e) {
-      // Ignore if already created
+    } catch {
+      // Ignore if already registered
     }
 
     setStoredUser(safeUser);
@@ -95,40 +120,18 @@ export async function login(email, password) {
       throw new Error('Your account has been suspended. Please contact an administrator.');
     }
 
-    // Handle missing web API key or demo accounts gracefully in dev/presentation environments
-    if (
-      err.code === 'auth/api-key-not-valid' ||
-      (err.message && err.message.includes('api-key-not-valid')) ||
-      email.endsWith('@demo.com')
-    ) {
-      const fallbackRole = email.includes('admin')
-        ? 'admin'
-        : email.includes('faculty')
-        ? 'faculty'
-        : email.includes('researcher')
-        ? 'researcher'
-        : 'student';
-
-      const demoName = email.split('@')[0];
-      const safeUser = {
-        uid: `demo-${demoName}-uid`,
-        name: demoName.charAt(0).toUpperCase() + demoName.slice(1),
-        email,
-        role: fallbackRole,
-        status: 'active',
-        token: `demo-token-${demoName}`,
-      };
-
-      setStoredUser(safeUser);
-      return safeUser;
+    if (err.code === 'auth/network-request-failed') {
+      throw new Error('Unable to connect to the authentication service. Please ensure the backend server is running.');
     }
 
-    // Handle standard Firebase Auth errors strictly
+    // Map Firebase Authentication error codes to user-friendly messages
     if (
       err.code === 'auth/invalid-credential' ||
       err.code === 'auth/user-not-found' ||
       err.code === 'auth/wrong-password' ||
-      err.code === 'auth/invalid-login-credentials'
+      err.code === 'auth/invalid-login-credentials' ||
+      err.code === 'auth/configuration-not-found' ||
+      err.code === 'auth/api-key-not-valid'
     ) {
       throw new Error('Invalid email or password.');
     }
@@ -142,28 +145,39 @@ export async function login(email, password) {
       throw new Error('Too many failed login attempts. Please try again later.');
     }
 
-    throw new Error(err.message || 'Login failed. Please try again.');
+    // If already formatted, preserve message; otherwise default to clean error
+    if (err.message && (err.message.includes('password') || err.message.includes('email'))) {
+      throw err;
+    }
+    throw new Error('Invalid email or password.');
   }
 }
 
 /**
- * Register user using Firebase Auth & create backend user profile
+ * Register user using Firebase Auth & create backend user profile.
+ * Strictly verifies registration with Firebase Authentication.
  */
 export async function register({ name, email, password, role }) {
+  const trimmedEmail = (email || '').trim();
+  const trimmedName = (name || '').trim();
+
+  if (!trimmedEmail) throw new Error('Please enter your email address.');
+  if (!password) throw new Error('Please enter a password.');
+
   try {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    const credential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
     const user = credential.user;
 
     // Create user profile in Firestore backend
     const res = await apiRequest('/users/profile', {
       method: 'POST',
-      body: JSON.stringify({ name, role }),
+      body: JSON.stringify({ name: trimmedName, role: role || 'student' }),
     });
 
     const safeUser = res && res.user ? res.user : {
       uid: user.uid,
-      name,
-      email,
+      name: trimmedName,
+      email: user.email,
       role: role || 'student',
       status: 'active',
     };
@@ -171,21 +185,8 @@ export async function register({ name, email, password, role }) {
     setStoredUser(safeUser);
     return safeUser;
   } catch (err) {
-    if (
-      err.code === 'auth/api-key-not-valid' ||
-      (err.message && err.message.includes('api-key-not-valid'))
-    ) {
-      const demoName = name || email.split('@')[0];
-      const safeUser = {
-        uid: `demo-${email.split('@')[0]}-uid`,
-        name: demoName,
-        email,
-        role: role || 'student',
-        status: 'active',
-        token: `demo-token-${email.split('@')[0]}`,
-      };
-      setStoredUser(safeUser);
-      return safeUser;
+    if (err.code === 'auth/network-request-failed') {
+      throw new Error('Unable to connect to the authentication service. Please ensure the backend server is running.');
     }
     if (err.code === 'auth/email-already-in-use') {
       throw new Error('An account with this email already exists.');
@@ -201,7 +202,7 @@ export async function register({ name, email, password, role }) {
 }
 
 /**
- * Logout from Firebase Auth and clear session
+ * Logout from Firebase Auth and clear session.
  */
 export async function logout() {
   try {
@@ -213,25 +214,46 @@ export async function logout() {
 }
 
 /**
- * Listen to auth state changes to keep token refreshed
+ * Listen to auth state changes from Firebase Auth.
+ * Unauthenticated Firebase state strictly clears user session.
  */
 export function subscribeToAuthChanges(callback) {
-  return onAuthStateChanged(auth, async (user) => {
-    if (user) {
+  return onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
       try {
         const profile = await getCurrentUserProfile();
-        callback(profile || getStoredUser());
+        if (profile) {
+          if (profile.status === 'suspended') {
+            await logout();
+            callback(null, 'Your account has been suspended. Please contact an administrator.');
+            return;
+          }
+          setStoredUser(profile);
+          callback(profile);
+          return;
+        }
       } catch (err) {
         if (err.isSuspended) {
           await logout();
           callback(null, 'Your account has been suspended. Please contact an administrator.');
-        } else {
-          callback(getStoredUser());
+          return;
         }
       }
+
+      // Safe fallback when profile doc has not loaded yet
+      const fallbackUser = {
+        uid: firebaseUser.uid,
+        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+        email: firebaseUser.email,
+        role: 'student',
+        status: 'active',
+      };
+      setStoredUser(fallbackUser);
+      callback(fallbackUser);
     } else {
-      const storedUser = getStoredUser();
-      callback(storedUser || null);
+      // Firebase reports user is NOT authenticated — strictly clear session
+      setStoredUser(null);
+      callback(null);
     }
   });
 }

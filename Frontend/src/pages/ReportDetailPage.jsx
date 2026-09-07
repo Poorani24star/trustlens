@@ -288,8 +288,13 @@ export default function ReportDetailPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                try { generatePdfReport(report); setToast({ message: 'PDF report downloaded successfully.', variant: 'success' }); } 
-                catch (pdfErr) { setToast({ message: 'Failed to generate PDF report.', variant: 'error' }); }
+                try {
+                  generatePdfReport(report);
+                  setToast({ message: 'PDF report downloaded successfully.', variant: 'success' });
+                } catch (pdfErr) {
+                  console.error('[ReportDetailPage] Failed to generate PDF report:', pdfErr);
+                  setToast({ message: 'Failed to generate PDF report.', variant: 'error' });
+                }
               }}
             >
               <Download className="w-3.5 h-3.5" /> Download PDF

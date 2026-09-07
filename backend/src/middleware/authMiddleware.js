@@ -26,24 +26,6 @@ async function authenticateUser(req, res, next) {
     });
   }
 
-  // Demo / Dev token fallback for presentation & testing
-  if (idToken.startsWith('demo-token-') || idToken.startsWith('demo-')) {
-    const rawUser = idToken.replace('demo-token-', '').replace('demo-', '');
-    const role = rawUser.includes('admin') ? 'admin' : rawUser.includes('faculty') ? 'faculty' : 'student';
-    const email = rawUser.includes('@') ? rawUser : `${rawUser}@demo.com`;
-    const uid = `demo-${rawUser.split('@')[0]}-uid`;
-
-    req.user = {
-      uid,
-      email,
-      name: rawUser.split('@')[0].charAt(0).toUpperCase() + rawUser.split('@')[0].slice(1),
-      role,
-      status: 'active',
-      isProfileComplete: true,
-    };
-    return next();
-  }
-
   if (!isFirebaseInitialized()) {
     return res.status(503).json({
       success: false,

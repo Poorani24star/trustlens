@@ -41,9 +41,19 @@ app.use('/api/admin', adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+const { startAuthEmulator } = require('./src/services/authEmulatorService');
+
 // Port Configuration & Server Startup
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`TrustLens backend running on port ${PORT}`);
+// Start Firebase Auth Emulator and backend server
+startAuthEmulator().then(() => {
+  app.listen(PORT, () => {
+    console.log(`TrustLens backend running on port ${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to start Auth Emulator:', err.message);
+  app.listen(PORT, () => {
+    console.log(`TrustLens backend running on port ${PORT}`);
+  });
 });
