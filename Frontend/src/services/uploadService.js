@@ -2,6 +2,7 @@ import { apiRequest } from './apiClient';
 
 /**
  * Upload single or multiple documents for Error Detection
+ * Retries once on network failure before giving up
  */
 export async function uploadErrorDetectionDocument(filesOrFile) {
   const formData = new FormData();
@@ -15,12 +16,17 @@ export async function uploadErrorDetectionDocument(filesOrFile) {
     formData.append('file', file);
   }
 
-  const res = await apiRequest(endpoint, {
-    method: 'POST',
-    body: formData,
-  });
-
-  return res;
+  try {
+    return await apiRequest(endpoint, { method: 'POST', body: formData });
+  } catch (err) {
+    // Retry once on network/timeout errors (not on 4xx validation errors)
+    if (!err.statusCode || err.statusCode === 503 || err.statusCode === 408) {
+      console.warn('[UploadService] Upload failed, retrying once…', err.message);
+      await new Promise(r => setTimeout(r, 1500));
+      return await apiRequest(endpoint, { method: 'POST', body: formData });
+    }
+    throw err;
+  }
 }
 
 /**

@@ -410,7 +410,7 @@ export default function CopiedContentUpload() {
 
         {/* ── Live Analysis Progress & Background Queue Modal ── */}
         <LiveAnalysisProgressModal
-          isOpen={isJobRunning || jobStatus === 'completed' || jobStatus === 'failed'}
+          isOpen={isJobRunning || jobStatus === 'completed' || jobStatus === 'failed' || jobStatus === 'cancelled'}
           status={jobStatus}
           progress={jobProgress}
           result={jobResult}
