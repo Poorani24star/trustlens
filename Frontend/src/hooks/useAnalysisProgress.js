@@ -32,6 +32,7 @@ export function useAnalysisProgress({ onComplete, onError, onCancel } = {}) {
   const eventSourceRef = useRef(null);
   const pollingTimerRef = useRef(null);
   const isMountedRef = useRef(true);
+  const isCancellingRef = useRef(false);
 
   // Clean up SSE and timers on unmount
   useEffect(() => {
@@ -82,7 +83,8 @@ export function useAnalysisProgress({ onComplete, onError, onCancel } = {}) {
     } else if (jobData.status === 'cancelled') {
       if (eventSourceRef.current) eventSourceRef.current.close();
       if (pollingTimerRef.current) clearInterval(pollingTimerRef.current);
-      if (onCancel) onCancel();
+      if (!isCancellingRef.current && onCancel) onCancel();
+      isCancellingRef.current = false;
     }
   }, [onComplete, onError, onCancel]);
 
@@ -177,21 +179,24 @@ export function useAnalysisProgress({ onComplete, onError, onCancel } = {}) {
    */
   const cancelJob = useCallback(async (reason = 'Analysis cancelled by user') => {
     if (!jobId) return;
+    isCancellingRef.current = true;
     try {
       await cancelAnalysisJob(jobId, reason);
-      setStatus('cancelled');
-      setProgress(prev => ({
-        ...prev,
-        stage: 'cancelled',
-        stageTitle: 'Cancelled',
-        message: reason
-      }));
-      if (eventSourceRef.current) eventSourceRef.current.close();
-      if (pollingTimerRef.current) clearInterval(pollingTimerRef.current);
-      if (onCancel) onCancel();
     } catch (err) {
-      console.error('[useAnalysisProgress] Cancel failed:', err.message);
+      console.error('[useAnalysisProgress] Cancel API call failed:', err.message);
     }
+    // Always apply cancelled state regardless of API success
+    if (eventSourceRef.current) eventSourceRef.current.close();
+    if (pollingTimerRef.current) clearInterval(pollingTimerRef.current);
+    setStatus('cancelled');
+    setProgress(prev => ({
+      ...prev,
+      stage: 'cancelled',
+      stageTitle: 'Analysis Cancelled',
+      message: reason
+    }));
+    isCancellingRef.current = false;
+    if (onCancel) onCancel();
   }, [jobId, onCancel]);
 
   /**

@@ -1,20 +1,26 @@
 const fs = require('fs');
-const pdfParse = require('pdf-parse');
 const { normalizeText } = require('./textNormalizationService');
 const { extractBufferOcrText, createOcrWorker, cleanOcrText } = require('./ocrExtractionService');
 
+// Lazy-loaded to avoid blocking startup; pdfjs-dist is ESM-only in v5
+let _pdfjsLib = null;
+async function getPdfjsLib() {
+  if (!_pdfjsLib) {
+    _pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  }
+  return _pdfjsLib;
+}
+
 /**
  * Checks whether extracted text for a page has sufficient meaningful words to avoid OCR
- * @param {string} text 
+ * @param {string} text
  * @returns {boolean}
  */
 function isTextSufficientForClaimExtraction(text) {
   if (!text || typeof text !== 'string') return false;
-
   const trimmed = text.trim();
   if (trimmed.length < 25) return false;
 
-  // Strip page markers and running footers before counting
   const cleaned = trimmed
     .replace(/--\s*\d+\s+of\s+\d+\s*--/gi, '')
     .replace(/^Page\s+\d+(\s+of\s+\d+)?$/gmi, '')
@@ -22,16 +28,46 @@ function isTextSufficientForClaimExtraction(text) {
     .trim();
 
   const words = cleaned.split(/\s+/).filter(w => /[a-zA-Z]{2,}/.test(w));
-  // Need at least 6 meaningful alphabetical words to form a factual claim
   return words.length >= 6;
 }
 
 /**
- * Extracts text from PDF files using digital text extraction with OCR fallback for scanned pages
- * @param {string} filePath Absolute path to PDF file
- * @returns {Promise<Object>} Extraction result with text, pages, extractionMethod
+ * Renders a single PDF page to a PNG Buffer using pdfjs-dist + @napi-rs/canvas
+ * @param {Object} pdfDoc  - loaded pdfjs document
+ * @param {number} pageNum - 1-based page number
+ * @param {number} [scale=2.0]
+ * @returns {Promise<Buffer|null>}
  */
-async function extractPdfText(filePath) {
+async function renderPageToImageBuffer(pdfDoc, pageNum, scale = 2.0) {
+  try {
+    const { createCanvas } = require('@napi-rs/canvas');
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    const width = Math.round(viewport.width);
+    const height = Math.round(viewport.height);
+
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const pngBuffer = canvas.toBuffer('image/png');
+    page.cleanup();
+    return pngBuffer;
+  } catch (err) {
+    console.warn(`[PdfExtractionService] Page ${pageNum} render failed:`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Extracts text from PDF files using digital text extraction with OCR fallback for scanned pages.
+ * Uses pdfjs-dist v5 (ESM) + @napi-rs/canvas for page rendering.
+ * @param {string} filePath - Absolute path to PDF file
+ * @param {Object} [options]
+ * @returns {Promise<Object>} Extraction result
+ */
+async function extractPdfText(filePath, options = {}) {
   if (!fs.existsSync(filePath)) {
     const err = new Error('PDF file not found on server');
     err.statusCode = 404;
@@ -51,7 +87,7 @@ async function extractPdfText(filePath) {
     };
   }
 
-  // Validate PDF header signature
+  // Validate PDF header
   const headerCheck = dataBuffer.slice(0, 10).toString();
   if (!headerCheck.includes('%PDF-')) {
     const err = new Error('Invalid PDF structure: File does not contain a valid PDF header.');
@@ -59,38 +95,64 @@ async function extractPdfText(filePath) {
     throw err;
   }
 
-  const PDFParseClass = pdfParse.PDFParse || pdfParse;
-  let parser = null;
+  const pdfjsLib = await getPdfjsLib();
+  let pdfDoc = null;
   let ocrWorker = null;
 
   try {
-    parser = new PDFParseClass({ data: dataBuffer });
-    let textRes;
+    const uint8 = new Uint8Array(dataBuffer);
+
     try {
-      textRes = await parser.getText();
-    } catch (err) {
-      console.warn('[PdfExtractionService] PDF getText parsing failed:', err.message);
-      const error = new Error(`Failed to parse PDF: ${err.message}`);
-      error.statusCode = 422;
-      throw error;
+      const loadTask = pdfjsLib.getDocument({
+        data: uint8,
+        useWorkerFetch: false,
+        isEvalSupported: false,
+        useSystemFonts: true,
+      });
+      pdfDoc = await loadTask.promise;
+    } catch (loadErr) {
+      const msg = loadErr.message || '';
+      if (msg.toLowerCase().includes('password')) {
+        const err = new Error('This PDF is password-protected and cannot be processed.');
+        err.statusCode = 422;
+        throw err;
+      }
+      const err = new Error(`Failed to parse PDF: ${loadErr.message}`);
+      err.statusCode = 422;
+      throw err;
     }
 
-    const totalPages = textRes.total || (Array.isArray(textRes.pages) ? textRes.pages.length : 1) || 1;
-    const rawPagesArray = textRes.pages || [];
-
+    const totalPages = pdfDoc.numPages;
     const pageResults = [];
     let ocrUsedCount = 0;
     let normalUsedCount = 0;
     const ocrPagesList = [];
 
     for (let p = 1; p <= totalPages; p++) {
-      const digitalPageText = rawPagesArray[p - 1]?.text || (totalPages === 1 ? textRes.text : '');
-      const isDigitalSufficient = isTextSufficientForClaimExtraction(digitalPageText);
+      if (options.abortSignal?.aborted) {
+        throw new Error('Analysis cancelled by user');
+      }
+
+      // Step 1: Try digital text extraction via pdfjs
+      let digitalText = '';
+      try {
+        const page = await pdfDoc.getPage(p);
+        const textContent = await page.getTextContent();
+        digitalText = textContent.items
+          .map(item => ('str' in item ? item.str : ''))
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        page.cleanup();
+      } catch (textErr) {
+        console.warn(`[PdfExtractionService] Digital text extraction failed page ${p}:`, textErr.message);
+      }
+
+      const isDigitalSufficient = isTextSufficientForClaimExtraction(digitalText);
 
       if (isDigitalSufficient) {
-        // Page has sufficient selectable digital text -> Skip OCR for this page
         normalUsedCount++;
-        const cleanedDigital = normalizeText(digitalPageText);
+        const cleanedDigital = normalizeText(digitalText);
         pageResults.push({
           pageNumber: p,
           method: 'normal',
@@ -98,106 +160,94 @@ async function extractPdfText(filePath) {
           textLength: cleanedDigital.length,
           wordCount: cleanedDigital.split(/\s+/).filter(Boolean).length,
         });
-      } else {
-        // Page is scanned or has insufficient digital text -> Run OCR on page screenshot
-        ocrPagesList.push(p);
 
-        try {
-          if (!ocrWorker) {
-            ocrWorker = await createOcrWorker();
-          }
+        if (options.onProgress) {
+          options.onProgress(Math.round((p / totalPages) * 100), `Extracting page ${p} of ${totalPages}`);
+        }
+        continue;
+      }
 
-          let pageImageBuffer = null;
+      // Step 2: Page has insufficient digital text — render to image and OCR
+      ocrPagesList.push(p);
 
-          // Attempt 1: Render page screenshot via parser.getScreenshot
-          try {
-            const screenshotRes = await parser.getScreenshot({ partial: [p], scale: 1.5 });
-            if (screenshotRes && Array.isArray(screenshotRes.pages) && screenshotRes.pages[0]?.data) {
-              pageImageBuffer = screenshotRes.pages[0].data;
-            }
-          } catch (scErr) {
-            console.warn(`[PdfExtractionService] Screenshot failed for page ${p}:`, scErr.message);
-          }
+      if (options.onProgress) {
+        options.onProgress(
+          Math.round((p / totalPages) * 100),
+          `OCR processing page ${p} of ${totalPages}…`
+        );
+      }
 
-          // Attempt 2: If screenshot was unavailable, check embedded images on page
-          if (!pageImageBuffer) {
-            try {
-              const imageRes = await parser.getImage({ partial: [p] });
-              if (imageRes && Array.isArray(imageRes.pages) && imageRes.pages[0]?.images?.[0]?.data) {
-                pageImageBuffer = imageRes.pages[0].images[0].data;
-              }
-            } catch (imgErr) {
-              console.warn(`[PdfExtractionService] Embedded image extraction failed for page ${p}:`, imgErr.message);
-            }
-          }
+      try {
+        if (!ocrWorker) {
+          ocrWorker = await createOcrWorker();
+        }
 
-          if (pageImageBuffer) {
-            const ocrRes = await extractBufferOcrText(pageImageBuffer, ocrWorker);
-            const cleanedOcr = cleanOcrText(ocrRes.text);
+        const pageImageBuffer = await renderPageToImageBuffer(pdfDoc, p, 2.0);
 
-            if (cleanedOcr && cleanedOcr.length > 0) {
-              ocrUsedCount++;
-              pageResults.push({
-                pageNumber: p,
-                method: 'ocr',
-                text: cleanedOcr,
-                textLength: cleanedOcr.length,
-                confidence: ocrRes.confidence || 0,
-                wordCount: cleanedOcr.split(/\s+/).filter(Boolean).length,
-              });
-            } else {
-              // OCR produced no readable text on this page
-              pageResults.push({
-                pageNumber: p,
-                method: 'ocr_unreadable',
-                text: '',
-                textLength: 0,
-                confidence: 0,
-                wordCount: 0,
-                warning: `Page ${p} could not be recognized reliably via OCR.`,
-              });
-            }
-          } else {
-            // No image or screenshot could be rendered for this page
+        if (pageImageBuffer) {
+          const ocrRes = await extractBufferOcrText(pageImageBuffer, ocrWorker);
+          const cleanedOcr = cleanOcrText(ocrRes.text);
+
+          if (cleanedOcr && cleanedOcr.length > 0) {
+            ocrUsedCount++;
             pageResults.push({
               pageNumber: p,
-              method: 'unreadable',
-              text: digitalPageText ? normalizeText(digitalPageText) : '',
-              textLength: (digitalPageText || '').length,
-              wordCount: (digitalPageText || '').split(/\s+/).filter(Boolean).length,
+              method: 'ocr',
+              text: cleanedOcr,
+              textLength: cleanedOcr.length,
+              confidence: ocrRes.confidence || 0,
+              wordCount: cleanedOcr.split(/\s+/).filter(Boolean).length,
+            });
+          } else {
+            pageResults.push({
+              pageNumber: p,
+              method: 'ocr_unreadable',
+              text: '',
+              textLength: 0,
+              confidence: 0,
+              wordCount: 0,
+              warning: `Page ${p} could not be recognized reliably via OCR.`,
             });
           }
-        } catch (pageOcrErr) {
-          console.error(`[PdfExtractionService] OCR failed on page ${p}:`, pageOcrErr.message);
+        } else {
+          // Render failed — fall back to whatever digital text we have
+          const fallbackText = digitalText ? normalizeText(digitalText) : '';
           pageResults.push({
             pageNumber: p,
-            method: 'failed',
-            text: digitalPageText ? normalizeText(digitalPageText) : '',
-            textLength: 0,
-            wordCount: 0,
-            error: pageOcrErr.message,
+            method: 'unreadable',
+            text: fallbackText,
+            textLength: fallbackText.length,
+            wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
           });
         }
+      } catch (pageOcrErr) {
+        console.error(`[PdfExtractionService] OCR failed on page ${p}:`, pageOcrErr.message);
+        pageResults.push({
+          pageNumber: p,
+          method: 'failed',
+          text: digitalText ? normalizeText(digitalText) : '',
+          textLength: 0,
+          wordCount: 0,
+          error: pageOcrErr.message,
+        });
       }
     }
 
-    // Determine overall document extraction method
+    // Determine overall extraction method
     let finalExtractionMethod = 'normal';
     if (ocrUsedCount > 0 && normalUsedCount > 0) {
       finalExtractionMethod = 'mixed';
-    } else if (ocrUsedCount > 0 && normalUsedCount === 0) {
+    } else if (ocrUsedCount > 0) {
       finalExtractionMethod = 'ocr';
-    } else {
-      finalExtractionMethod = 'normal';
     }
 
-    // Combine page texts preserving strict document page order
-    const combinedPagesText = pageResults
+    // Combine page texts in correct page order
+    const combinedText = pageResults
       .map(pr => pr.text)
       .filter(Boolean)
       .join('\n\n');
 
-    const normalizedFullText = normalizeText(combinedPagesText);
+    const normalizedFullText = normalizeText(combinedText);
 
     return {
       text: normalizedFullText,
@@ -213,13 +263,14 @@ async function extractPdfText(filePath) {
     };
 
   } catch (err) {
+    if (err.statusCode) throw err;
     console.error('[PdfExtractionService] PDF extraction failed:', err.message);
     const error = new Error(`Failed to extract text from PDF: ${err.message}`);
     error.statusCode = 422;
     throw error;
   } finally {
-    if (parser && typeof parser.destroy === 'function') {
-      await parser.destroy().catch(() => {});
+    if (pdfDoc) {
+      try { pdfDoc.destroy(); } catch (_) {}
     }
     if (ocrWorker) {
       await ocrWorker.terminate().catch(() => {});
