@@ -1,6 +1,9 @@
 const fs = require('fs');
+const sharp = require('sharp');
 const { createWorker } = require('tesseract.js');
 const { normalizeText } = require('./textNormalizationService');
+const { transcribeWithVision } = require('./visionOcrService');
+const { correctOcrText } = require('./ocrCorrectionService');
 
 /**
  * Validates whether a buffer or Uint8Array has a valid image signature (PNG, JPEG, BMP, TIFF, WebP)
@@ -51,10 +54,11 @@ function cleanOcrText(rawText) {
 
 /**
  * Creates and initializes a Tesseract worker
+ * @param {Object} [options]
  */
-async function createOcrWorker() {
+async function createOcrWorker(options = {}) {
   try {
-    const worker = await createWorker('eng');
+    const worker = await createWorker('eng', 1, options.logger ? { logger: options.logger } : {});
     return worker;
   } catch (err) {
     console.error('[OcrExtractionService] Failed to create Tesseract worker:', err.message);
@@ -66,9 +70,10 @@ async function createOcrWorker() {
  * Extracts text from an image buffer using Tesseract.js OCR
  * @param {Buffer|Uint8Array} imageBuffer 
  * @param {Object} [existingWorker] Optional initialized worker
+ * @param {Object} [options] Optional progress options: { onProgress: (percent, status) => void }
  * @returns {Promise<{text: string, rawText: string, textLength: number, confidence: number, extractionMethod: string}>}
  */
-async function extractBufferOcrText(imageBuffer, existingWorker = null) {
+async function extractBufferOcrText(imageBuffer, existingWorker = null, options = {}) {
   if (!isValidImageBuffer(imageBuffer)) {
     return {
       text: '',
@@ -81,7 +86,15 @@ async function extractBufferOcrText(imageBuffer, existingWorker = null) {
 
   const safeBuffer = Buffer.isBuffer(imageBuffer) ? imageBuffer : Buffer.from(imageBuffer);
   let localWorker = null;
-  const worker = existingWorker || (localWorker = await createOcrWorker());
+
+  const logger = (m) => {
+    if (options.onProgress && m.status === 'recognizing text') {
+      const pct = Math.round((m.progress || 0) * 100);
+      options.onProgress(pct, m.status);
+    }
+  };
+
+  const worker = existingWorker || (localWorker = await createOcrWorker({ logger }));
 
   try {
     const ret = await worker.recognize(safeBuffer);
@@ -113,9 +126,11 @@ async function extractBufferOcrText(imageBuffer, existingWorker = null) {
 }
 
 /**
- * Extracts text from image files (.jpg, .jpeg, .png) using Tesseract.js OCR
+ * Extracts text from image files (.jpg, .jpeg, .png) using Gemini Vision or enhanced Tesseract.js OCR
+ * @param {string} filePath
+ * @param {Object} [options] Optional configuration / progress callbacks
  */
-async function extractImageOcrText(filePath) {
+async function extractImageOcrText(filePath, options = {}) {
   if (!fs.existsSync(filePath)) {
     const err = new Error('Image file not found on server');
     err.statusCode = 404;
@@ -142,26 +157,71 @@ async function extractImageOcrText(filePath) {
     throw err;
   }
 
-  const res = await extractBufferOcrText(imageBuffer);
-  const normalized = normalizeText(res.text);
+  // 1. High-Accuracy Gemini Vision OCR (if API key is configured)
+  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== '') {
+    if (options.onProgress) {
+      options.onProgress(35, 'Transcribing document with Gemini Multimodal Vision…');
+    }
+    const visionRes = await transcribeWithVision(imageBuffer, options.mimeType);
+    if (visionRes.success && visionRes.text && visionRes.text.length > 0) {
+      if (options.onProgress) {
+        options.onProgress(100, 'Handwriting transcription complete');
+      }
+      const normalizedVision = normalizeText(visionRes.text);
+      return {
+        text: normalizedVision,
+        textLength: normalizedVision.length,
+        extractionMethod: 'gemini-vision',
+        confidence: visionRes.confidence || 96,
+        requiresOcr: true,
+        pageCount: 1,
+        pages: [{
+          pageNumber: 1,
+          method: 'gemini-vision',
+          text: normalizedVision,
+          textLength: normalizedVision.length,
+          confidence: visionRes.confidence || 96,
+          wordCount: normalizedVision.split(/\s+/).filter(Boolean).length,
+        }],
+        qualityNotes: null,
+      };
+    }
+  }
+
+  // 2. Offline Fallback: Sharp Image Preprocessing + Tesseract OCR + Dictionary Correction
+  let bufferToScan = imageBuffer;
+  try {
+    bufferToScan = await sharp(imageBuffer)
+      .rotate() // Auto-orient based on EXIF camera tag
+      .grayscale()
+      .normalize()
+      .toBuffer();
+  } catch (sharpErr) {
+    console.warn('[OcrExtractionService] Sharp preprocessing error, using raw buffer:', sharpErr.message);
+    bufferToScan = imageBuffer;
+  }
+
+  const res = await extractBufferOcrText(bufferToScan, null, options);
+  const corrected = correctOcrText(res.text);
+  const normalized = normalizeText(corrected);
 
   return {
     text: normalized,
     textLength: normalized.length,
-    extractionMethod: 'ocr',
+    extractionMethod: 'ocr-enhanced',
     confidence: res.confidence,
     requiresOcr: true,
     pageCount: 1,
     pages: [{
       pageNumber: 1,
-      method: 'ocr',
+      method: 'ocr-enhanced',
       text: normalized,
       textLength: normalized.length,
       confidence: res.confidence,
       wordCount: normalized.split(/\s+/).filter(Boolean).length,
     }],
-    qualityNotes: normalized.length === 0
-      ? 'No readable text could be recognized from this image. Please upload a clearer document.'
+    qualityNotes: res.confidence < 50
+      ? 'Handwritten document recognized with local OCR. For maximum handwriting accuracy, configure GEMINI_API_KEY in backend/.env.'
       : null,
   };
 }

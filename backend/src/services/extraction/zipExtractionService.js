@@ -4,12 +4,12 @@ const AdmZip = require('adm-zip');
 const { uploadsDir } = require('../../middleware/uploadMiddleware');
 
 const SUPPORTED_EXTENSIONS = ['.pdf', '.docx', '.doc', '.txt', '.jpg', '.jpeg', '.png'];
-const MAX_ZIP_FILES = 10;
+const MAX_ZIP_FILES = 60;
 
 /**
  * Extracts and processes documents within a ZIP archive
  */
-async function extractZipArchive(zipFilePath, extractDocumentTextFn) {
+async function extractZipArchive(zipFilePath, extractDocumentTextFn, options = {}) {
   if (!fs.existsSync(zipFilePath)) {
     const err = new Error('ZIP file not found on server');
     err.statusCode = 404;
@@ -74,11 +74,39 @@ async function extractZipArchive(zipFilePath, extractDocumentTextFn) {
 
     const extractedDocuments = [];
 
-    for (const entry of validEntries) {
+    for (let i = 0; i < validEntries.length; i++) {
+      if (options.abortSignal?.aborted) {
+        throw new Error('Analysis cancelled by user');
+      }
+
+      const entry = validEntries[i];
+      if (options.onProgress) {
+        options.onProgress({
+          stage: 'extracting',
+          current: i + 1,
+          total: validEntries.length,
+          fileName: entry.name,
+          message: `Extracting text from ${entry.name} (${i + 1}/${validEntries.length})…`
+        });
+      }
+
       const extractedFilePath = path.join(tempExtractDir, entry.name);
       fs.writeFileSync(extractedFilePath, entry.getData());
 
-      const result = await extractor(extractedFilePath, entry.name);
+      let result;
+      try {
+        result = await extractor(extractedFilePath, entry.name);
+      } catch (extractErr) {
+        console.warn(`[ZipExtractionService] Extraction error on ${entry.name}:`, extractErr.message);
+        result = {
+          extraction: {
+            text: '',
+            isOcr: false,
+            error: extractErr.message
+          }
+        };
+      }
+
       extractedDocuments.push({
         originalName: entry.name,
         fileType: path.extname(entry.name).substring(1).toLowerCase(),

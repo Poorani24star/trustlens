@@ -64,14 +64,18 @@ function validateDomain(rawText) {
   let totalTechnicalScore = 0;
   let genericMatchesOnlyCount = 0;
 
+  const tokens = normalized.replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
+
   for (const topic of SUPPORTED_TOPICS) {
     const keywords = TOPIC_KEYWORDS[topic] || [];
     for (const kw of keywords) {
       const normalizedKw = normalizeText(kw);
       if (!normalizedKw) continue;
 
-      // Word boundary regex with optional plural suffix for robust matching
-      const regex = new RegExp(`\\b${normalizedKw}(?:s|es)?\\b`, 'i');
+      // Safe regex with escaped special characters
+      const escapedKw = normalizedKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedKw}(?:s|es)?\\b`, 'i');
+      
       if (regex.test(normalized)) {
         matchedKeywordsSet.add(kw);
         matchedTopicsSet.add(topic);
@@ -83,6 +87,27 @@ function validateDomain(rawText) {
           totalTechnicalScore += 2.0; // Higher weight for multi-word technical phrases
         } else {
           totalTechnicalScore += 1.0; // Standard single-word technical terms
+        }
+      } else if (!normalizedKw.includes(' ') && normalizedKw.length >= 6 && !WEAK_GENERIC_TERMS.has(normalizedKw)) {
+        // OCR-tolerant fuzzy token matching for scanned documents & handwriting
+        for (const token of tokens) {
+          if (token.length >= 5 && Math.abs(token.length - normalizedKw.length) <= 2) {
+            let diff = 0;
+            const maxDiff = normalizedKw.length >= 9 ? 3 : 2;
+            // Quick bounded edit distance
+            if (token.slice(0, 3) === normalizedKw.slice(0, 3) || token.slice(-3) === normalizedKw.slice(-3)) {
+              for (let i = 0; i < Math.min(token.length, normalizedKw.length); i++) {
+                if (token[i] !== normalizedKw[i]) diff++;
+              }
+              diff += Math.abs(token.length - normalizedKw.length);
+              if (diff <= maxDiff) {
+                matchedKeywordsSet.add(kw);
+                matchedTopicsSet.add(topic);
+                totalTechnicalScore += 0.8;
+                break;
+              }
+            }
+          }
         }
       }
     }

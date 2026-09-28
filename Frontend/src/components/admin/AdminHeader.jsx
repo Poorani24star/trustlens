@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Bell, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 function getInitials(name = '') {
@@ -7,7 +7,13 @@ function getInitials(name = '') {
 }
 
 export default function AdminHeader({ onMenuOpen, pageTitle = 'Admin Dashboard' }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await logout();
+    navigate('/login');
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 h-16 flex items-center px-4 sm:px-6 gap-4">
@@ -47,6 +53,16 @@ export default function AdminHeader({ onMenuOpen, pageTitle = 'Admin Dashboard' 
             <span className="text-xs text-slate-500">Administrator</span>
           </span>
         </Link>
+
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-red-600 cursor-pointer"
+          title="Sign Out"
+          aria-label="Sign Out"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="hidden md:inline">Sign Out</span>
+        </button>
       </div>
     </header>
   );

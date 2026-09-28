@@ -1,4 +1,59 @@
-import { getReports, getReportSummary } from './reportService';
+import { apiRequest } from './apiClient';
+import { API_BASE_URL } from '../config/api';
+import { auth } from '../config/firebase';
+
+/**
+ * Start a new background analysis job
+ * @param {{ type: 'copied-content'|'error-detection', uploadId: string, files?: Array<Object> }} data 
+ */
+export async function startAnalysisJob(data) {
+  return await apiRequest('/analysis/jobs/start', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Fetch current snapshot of job progress
+ * @param {string} jobId 
+ */
+export async function getJobStatus(jobId) {
+  return await apiRequest(`/analysis/jobs/${jobId}`);
+}
+
+/**
+ * Cancel an active analysis job
+ * @param {string} jobId 
+ * @param {string} reason 
+ */
+export async function cancelAnalysisJob(jobId, reason = 'Cancelled by user') {
+  return await apiRequest(`/analysis/jobs/${jobId}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+/**
+ * Retry an individual failed file in an active job
+ * @param {string} jobId 
+ * @param {string} fileId 
+ */
+export async function retryAnalysisFile(jobId, fileId) {
+  return await apiRequest(`/analysis/jobs/${jobId}/retry-file`, {
+    method: 'POST',
+    body: JSON.stringify({ fileId }),
+  });
+}
+
+/**
+ * Create a Server-Sent Events (SSE) connection for real-time progress updates
+ * @param {string} jobId 
+ * @returns {EventSource}
+ */
+export function createAnalysisEventSource(jobId) {
+  const url = `${API_BASE_URL}/analysis/jobs/${jobId}/events`;
+  return new EventSource(url);
+}
 
 function parseSafeDate(dateVal) {
   if (!dateVal) return new Date();
@@ -15,9 +70,13 @@ function parseSafeDate(dateVal) {
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
+/**
+ * Fetch list of analyses/reports formatted for UI (History & Reports pages)
+ */
 export async function getAnalyses(params = {}) {
   try {
-    const rawReports = await getReports(params);
+    const res = await apiRequest('/reports', { params });
+    const rawReports = res.reports || [];
     return rawReports.map(r => {
       const isErrorDetection =
         r.reportType === 'error-detection' ||
@@ -30,6 +89,7 @@ export async function getAnalyses(params = {}) {
       const fileName =
         r.document?.originalName ||
         r.document?.fileName ||
+        r.fileName ||
         r.title ||
         (isErrorDetection ? 'Document_Analysis.pdf' : 'Documents_Analysis.zip');
       
@@ -47,15 +107,22 @@ export async function getAnalyses(params = {}) {
 
       return {
         id: r.id || r.reportId,
+        reportId: r.reportId || r.id,
         fileName,
         type: isErrorDetection ? 'error-detection' : 'copied-content',
         typeLabel: isErrorDetection ? 'Error Detection' : 'Copied Content',
+        reportType: isErrorDetection ? 'error-detection' : 'copied-content',
         date: created.toISOString().split('T')[0],
         time: created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: r.status || 'completed',
         result: resultText,
         reportStatus: 'available',
         detail: detailText,
+        documentCount: r.documentCount || (r.documents ? r.documents.length : 1),
+        summary: r.summary || {},
+        findings: r.findings || [],
+        pairResults: r.pairResults || [],
+        ...r,
       };
     });
   } catch (err) {
@@ -64,6 +131,9 @@ export async function getAnalyses(params = {}) {
   }
 }
 
+/**
+ * Calculate client-side summary counts
+ */
 export function getAnalysisSummary(analyses = []) {
   const errorDetection = analyses.filter(a => a.type === 'error-detection').length;
   const copiedContent  = analyses.filter(a => a.type === 'copied-content').length;
@@ -76,16 +146,21 @@ export function getAnalysisSummary(analyses = []) {
   };
 }
 
+/**
+ * Fetch analysis summary statistics from backend
+ */
 export async function fetchAnalysisSummary() {
   try {
-    const summary = await getReportSummary();
+    const res = await apiRequest('/reports/stats/summary');
+    const stats = res.stats || {};
     return {
-      total: summary.totalReports || 0,
-      errorDetection: summary.errorDetectionReports || 0,
-      copiedContent: summary.copiedContentReports || 0,
-      reportsAvailable: summary.totalReports || 0,
+      total: stats.totalReports || 0,
+      errorDetection: stats.errorDetectionReports || 0,
+      copiedContent: stats.copiedContentReports || 0,
+      reportsAvailable: stats.totalReports || 0
     };
-  } catch (err) {
+  } catch {
     return { total: 0, errorDetection: 0, copiedContent: 0, reportsAvailable: 0 };
   }
 }
+

@@ -12,6 +12,7 @@ const errorDetectionRoutes = require('./src/routes/errorDetectionRoutes');
 const copiedContentRoutes = require('./src/routes/copiedContentRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const analysisRoutes = require('./src/routes/analysisRoutes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/error-detection', errorDetectionRoutes);
 app.use('/api/copied-content', copiedContentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 // 404 & Error Handling Middleware
 app.use(notFound);

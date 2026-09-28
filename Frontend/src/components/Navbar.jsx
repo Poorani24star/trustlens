@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import Logo from './Logo';
 import Button from './Button';
 import { useAuth } from '../context/AuthContext';
+import { normalizeRole } from '../config/rolePermissions';
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -14,6 +15,8 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const isAdmin = normalizeRole(user?.role) === 'admin';
+  const targetDashboard = isAdmin ? '/admin/dashboard' : '/dashboard';
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
@@ -38,9 +41,14 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-2">
           {user ? (
-            <Link to={user.role === 'admin' ? '/admin/dashboard' : '/dashboard'}>
-              <Button variant="primary" size="sm">Go to Dashboard</Button>
-            </Link>
+            <>
+              <Link to={targetDashboard}>
+                <Button variant="primary" size="sm">Go to Dashboard</Button>
+              </Link>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Switch Account</Button>
+              </Link>
+            </>
           ) : (
             <>
               <Link to="/login"><Button variant="ghost" size="sm">Login</Button></Link>
@@ -84,9 +92,14 @@ export default function Navbar() {
           ))}
           <div className="flex flex-col gap-2 pt-3 border-t border-slate-100 mt-1">
             {user ? (
-              <Link to={user.role === 'admin' ? '/admin/dashboard' : '/dashboard'} onClick={() => setOpen(false)}>
-                <Button variant="primary" className="w-full">Go to Dashboard</Button>
-              </Link>
+              <>
+                <Link to={targetDashboard} onClick={() => setOpen(false)}>
+                  <Button variant="primary" className="w-full">Go to Dashboard</Button>
+                </Link>
+                <Link to="/login" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">Switch Account / Login</Button>
+                </Link>
+              </>
             ) : (
               <>
                 <Link to="/login" onClick={() => setOpen(false)}><Button variant="outline" className="w-full">Login</Button></Link>

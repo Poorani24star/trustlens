@@ -163,7 +163,13 @@ const { classifyStatements } = require('./errorClassificationService');
 /**
  * Executes Error Detection Analysis on uploaded document(s) against active trusted sources
  */
-async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
+async function analyzeErrorDetectionDocument(user, temporaryUploadId, options = {}) {
+  const { onProgress, abortSignal } = options;
+
+  if (abortSignal?.aborted) {
+    throw new Error('Analysis cancelled by user');
+  }
+
   const userUid = typeof user === 'string' ? user : user.uid;
   const userObj = typeof user === 'string' ? { uid: userUid } : user;
 
@@ -195,6 +201,16 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
     } catch (existingErr) {
       console.warn('[ErrorDetectionService] Existing report lookup failed, regenerating:', existingErr.message);
     }
+  }
+
+  if (onProgress) {
+    onProgress({
+      stage: 'extracting',
+      stageTitle: 'Extracting Document Text',
+      percent: 15,
+      currentStep: 2,
+      message: `Extracting text & OCR scanning from ${session.files.length} document(s)…`
+    });
   }
 
   const allDocumentsMeta = [];
@@ -232,6 +248,10 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
   let globalIndex = 1;
 
   for (let docIdx = 0; docIdx < session.files.length; docIdx++) {
+    if (abortSignal?.aborted) {
+      throw new Error('Analysis cancelled by user');
+    }
+
     const userFile = session.files[docIdx];
     const docId = `doc_${docIdx + 1}_${temporaryUploadId}`;
 
@@ -247,9 +267,49 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
       errorMessage: null,
     };
 
+    if (onProgress) {
+      const docPct = Math.round(15 + ((docIdx + 1) / session.files.length) * 35);
+      onProgress({
+        stage: 'extracting',
+        stageTitle: 'Extracting Document Text',
+        percent: docPct,
+        currentStep: 2,
+        message: `Extracting text from ${userFile.originalName} (${docIdx + 1}/${session.files.length})…`,
+        fileUpdate: {
+          name: userFile.originalName,
+          status: 'extracting',
+          progress: 50
+        }
+      });
+    }
+
     try {
+      const onDocOcrProgress = (ocrPct) => {
+        if (onProgress) {
+          const docBasePct = 15 + Math.round((docIdx / session.files.length) * 35);
+          const currentDocPct = Math.round(docBasePct + (ocrPct / 100) * (35 / session.files.length));
+          onProgress({
+            stage: 'extracting',
+            stageTitle: 'OCR Processing',
+            percent: Math.min(50, Math.max(15, currentDocPct)),
+            currentStep: 2,
+            message: `Optical Character Recognition (${ocrPct}%) on ${userFile.originalName}…`,
+            fileUpdate: {
+              name: userFile.originalName,
+              status: 'extracting',
+              progress: ocrPct
+            }
+          });
+        }
+      };
+
       // Step 2: Text extraction
-      const extractionResult = await extractDocumentText(userFile.uploadPath, userFile.originalName, userFile.mimeType);
+      const extractionResult = await extractDocumentText(
+        userFile.uploadPath, 
+        userFile.originalName, 
+        userFile.mimeType,
+        { onProgress: onDocOcrProgress }
+      );
       const extraction = extractionResult.extraction || {};
       const userText = extraction.text || '';
 
@@ -263,10 +323,29 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
         docMeta.errorMessage = 'Extracted document text is empty.';
         aggregateSummary.failedDocuments++;
         allDocumentsMeta.push(docMeta);
+        if (onProgress) {
+          onProgress({
+            fileUpdate: {
+              name: userFile.originalName,
+              status: 'failed',
+              error: 'Extracted text is empty'
+            }
+          });
+        }
         continue;
       }
 
       // Step 2b: Domain Validation (Task 2)
+      if (onProgress) {
+        onProgress({
+          stage: 'validating_domain',
+          stageTitle: 'Domain Validation',
+          percent: 52,
+          currentStep: 2,
+          message: `Verifying Computer Science technical domain for ${userFile.originalName}…`
+        });
+      }
+
       const domainValidation = validateDomain(userText);
       if (!domainValidation.supported) {
         docMeta.status = 'unsupported';
@@ -286,6 +365,16 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
       // Step 2d: Relevant Knowledge Retrieval (Task 7)
       const retrievalResult = await retrieveRelevantKnowledge(topicDetection);
 
+      if (onProgress) {
+        onProgress({
+          stage: 'extracting_statements',
+          stageTitle: 'Extracting Statements',
+          percent: 55,
+          currentStep: 3,
+          message: `Extracting factual statements from ${userFile.originalName}…`
+        });
+      }
+
       // Step 2e: Statement Extraction & Preparation (Task 8 / E1)
       const statementResult = extractAndPrepareStatements(userText, {
         documentId: docId,
@@ -303,6 +392,16 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
       aggregateStatementSummary.ignoredStatements += statementResult.summary?.ignoredStatements || 0;
       aggregateStatementSummary.failedStatements += statementResult.summary?.failedStatements || 0;
 
+      if (onProgress) {
+        onProgress({
+          stage: 'verifying',
+          stageTitle: 'Factual Verification',
+          percent: 75,
+          currentStep: 3,
+          message: `Verifying ${readyStatements.length} statements against verified knowledge sources…`
+        });
+      }
+
       // Step 2f: TF-IDF + Cosine Similarity Comparison (Task 9)
       const comparisonResult = compareStatementsToKnowledge(readyStatements, retrievedKnowledge);
       lastComparisonResult = comparisonResult;
@@ -316,6 +415,21 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
       docMeta.statementCount = docResults.length;
       docMeta.summary = classificationResult.summary || { supported: 0, incorrect: 0, misleading: 0, unsupported: 0, noKnowledgeAvailable: 0 };
       aggregateSummary.processedDocuments++;
+
+      if (onProgress) {
+        onProgress({
+          stage: 'finalizing',
+          stageTitle: 'Generating Report',
+          percent: 90,
+          currentStep: 4,
+          message: `Finalizing findings and report for ${userFile.originalName}…`,
+          fileUpdate: {
+            name: userFile.originalName,
+            status: 'completed',
+            progress: 100
+          }
+        });
+      }
 
       // Aggregate counts
       aggregateSummary.totalStatements += docResults.length;
@@ -420,6 +534,7 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
     detectedTopics: Array.from(allDetectedTopics),
     extractionMethod: overallExtractionMethod,
     ocrPages: allOcrPages,
+    qualityNotes: allDocumentsMeta.map(d => d.qualityNotes).filter(Boolean).join(' ') || null,
   };
 
   const finalSummaryMeta = {
@@ -430,6 +545,7 @@ async function analyzeErrorDetectionDocument(user, temporaryUploadId) {
     detectedTopics: Array.from(allDetectedTopics),
     extractionMethod: overallExtractionMethod,
     ocrPages: allOcrPages,
+    qualityNotes: allDocumentsMeta.map(d => d.qualityNotes).filter(Boolean).join(' ') || null,
     uploadId: temporaryUploadId,
     comparisonSummary: lastComparisonResult ? {
       totalStatementsAnalyzed: lastComparisonResult.totalStatementsAnalyzed,

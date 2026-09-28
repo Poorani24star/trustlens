@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import PublicLayout from '../layouts/PublicLayout';
 import Button from '../components/Button';
+import { useAuth } from '../context/AuthContext';
+import { normalizeRole, hasPermission } from '../config/rolePermissions';
 
 function HeroVisual() {
   return (
@@ -51,6 +53,10 @@ const USERS = [
 ];
 
 export default function LandingPage() {
+  const { user } = useAuth();
+  const isAdmin = normalizeRole(user?.role) === 'admin';
+  const targetDashboard = isAdmin ? '/admin/dashboard' : '/dashboard';
+
   return (
     <PublicLayout>
       {/* Hero */}
@@ -68,8 +74,17 @@ export default function LandingPage() {
               TrustLens helps you verify information in documents and identify copied text across multiple documents — clearly, responsibly, and efficiently.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/register"><Button size="lg">Get Started</Button></Link>
-              <Link to="/login"><Button variant="secondary" size="lg">Login</Button></Link>
+              {user ? (
+                <>
+                  <Link to={targetDashboard}><Button size="lg">Go to Dashboard</Button></Link>
+                  <Link to="/login"><Button variant="secondary" size="lg">Switch Account</Button></Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/register"><Button size="lg">Get Started</Button></Link>
+                  <Link to="/login"><Button variant="secondary" size="lg">Login</Button></Link>
+                </>
+              )}
             </div>
           </div>
           <HeroVisual />
@@ -102,7 +117,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-auto">
-                <Link to="/register">
+                <Link to={user ? '/error-detection' : '/login'}>
                   <Button variant="secondary" size="sm">Explore Error Detection</Button>
                 </Link>
               </div>
@@ -124,7 +139,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-auto">
-                <Link to="/register">
+                <Link to={user ? (hasPermission(user.role, 'copiedContent') ? '/copied-content' : '/dashboard') : '/login'}>
                   <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">Explore Copied Content</Button>
                 </Link>
               </div>
@@ -196,7 +211,11 @@ export default function LandingPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center space-y-5">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Ready to take a closer look?</h2>
           <p className="text-slate-500">Upload, verify and understand your documents with TrustLens.</p>
-          <Link to="/register"><Button size="lg">Get Started</Button></Link>
+          {user ? (
+            <Link to={targetDashboard}><Button size="lg">Go to Dashboard</Button></Link>
+          ) : (
+            <Link to="/register"><Button size="lg">Get Started</Button></Link>
+          )}
         </div>
       </section>
     </PublicLayout>

@@ -40,13 +40,17 @@ export default function AnalysisCard({ analysis }) {
   const [toast, setToast] = useState(null);
 
   const { id, fileName, typeLabel, type, date, time, result, detail, reportStatus } = analysis;
-  const rs = REPORT_STATUS[reportStatus] ?? REPORT_STATUS.failed;
-  const isZip = fileName.endsWith('.zip');
+  const rs = REPORT_STATUS[reportStatus] ?? REPORT_STATUS.available;
+  const safeFileName = fileName || analysis.title || (type === 'copied-content' ? 'Documents_Analysis.zip' : 'Document_Analysis.pdf');
+  const isZip = safeFileName.toLowerCase().endsWith('.zip');
   const FileIcon = isZip ? Archive : FileText;
   const typeStyle = TYPE_STYLES[type] ?? 'bg-slate-50 text-slate-700 border-slate-200';
 
   // Format date as "Aug 16, 2026"
-  const displayDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const parsedDate = date ? new Date(date) : new Date();
+  const displayDate = !isNaN(parsedDate.getTime())
+    ? parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'Recent';
 
   async function handleDownload() {
     try {

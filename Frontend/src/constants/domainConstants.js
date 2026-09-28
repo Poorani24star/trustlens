@@ -39,11 +39,12 @@ export const TOPIC_KEYWORDS = {
   ],
   'Computer Networks': [
     'tcp', 'udp', 'ip', 'routing', 'network', 'protocol', 'osi', 'dns', 'router', 'switch',
-    'packet', 'subnet', 'lan', 'wan', 'ethernet', 'firewall', 'http', 'https'
+    'packet', 'subnet', 'lan', 'wan', 'ethernet', 'firewall', 'http', 'https', 'device', 'devices', 'gateway', 'gateways'
   ],
   'Cloud Computing': [
-    'cloud', 'virtualization', 'virtual machine', 'vm', 'container', 'docker', 'kubernetes',
-    'iaas', 'paas', 'saas', 'aws', 'azure', 'gcp', 'serverless', 'hypervisor', 'ec2', 's3'
+    'cloud', 'cloud computing', 'virtualization', 'virtual machine', 'vm', 'container', 'docker', 'kubernetes',
+    'iaas', 'paas', 'saas', 'aws', 'azure', 'gcp', 'serverless', 'hypervisor', 'ec2', 's3',
+    'fog computing', 'edge computing', 'data center', 'datacenter', 'edge servers', 'workload'
   ],
   'Artificial Intelligence': [
     'artificial intelligence', 'ai', 'intelligent agent', 'reasoning', 'knowledge representation',
@@ -74,12 +75,13 @@ export const TOPIC_KEYWORDS = {
     'cybersecurity', 'decryption', 'cryptography', 'hash function', 'rsa', 'ssl', 'tls'
   ],
   'Computer Architecture': [
-    'cpu', 'processor', 'cache', 'memory', 'instruction', 'architecture', 'alu', 'register',
+    'cpu', 'processor', 'processors', 'core', 'cores', 'multicore', 'cache', 'memory', 'instruction', 'architecture', 'alu', 'register',
     'pipelining', 'microprocessor', 'ram', 'rom', 'bus', 'risc', 'cisc'
   ],
   'Distributed Systems': [
-    'distributed system', 'distributed computing', 'node', 'replication', 'consensus',
-    'fault tolerance', 'paxos', 'raft', 'sharding', 'cap theorem', 'load balancer', 'microservices'
+    'distributed system', 'distributed computing', 'node', 'nodes', 'replication', 'consensus',
+    'fault tolerance', 'paxos', 'raft', 'sharding', 'cap theorem', 'load balancer', 'microservices',
+    'data parallelism', 'parallelism', 'parallel processing', 'parallel'
   ]
 };
 

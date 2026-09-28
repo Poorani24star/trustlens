@@ -9,8 +9,12 @@ const { normalizeText } = require('./textNormalizationService');
 /**
  * Main Text Extraction Orchestrator
  * Extracts text from single document or delegates ZIP archives
+ * @param {string} filePath
+ * @param {string} [originalName]
+ * @param {string} [mimeType]
+ * @param {Object} [options]
  */
-async function extractDocumentText(filePath, originalName, mimeType) {
+async function extractDocumentText(filePath, originalName, mimeType, options = {}) {
   if (!fs.existsSync(filePath)) {
     const err = new Error('File not found on server');
     err.statusCode = 404;
@@ -27,7 +31,8 @@ async function extractDocumentText(filePath, originalName, mimeType) {
   } else if (ext === '.docx' || ext === '.doc') {
     result = await extractDocxText(filePath);
   } else if (['.jpg', '.jpeg', '.png'].includes(ext)) {
-    result = await extractImageOcrText(filePath);
+    const effectiveMime = mimeType || (ext === '.png' ? 'image/png' : 'image/jpeg');
+    result = await extractImageOcrText(filePath, { ...options, mimeType: effectiveMime });
   } else if (ext === '.txt') {
     const rawText = fs.readFileSync(filePath, 'utf8');
     const cleanedText = normalizeText(rawText);
@@ -38,7 +43,7 @@ async function extractDocumentText(filePath, originalName, mimeType) {
       requiresOcr: false,
     };
   } else if (ext === '.zip') {
-    return await extractZipArchive(filePath, extractDocumentText);
+    return await extractZipArchive(filePath, (p, o, m) => extractDocumentText(p, o, m, options), options);
   } else {
     const err = new Error(`Unsupported file type '${ext}'.`);
     err.statusCode = 400;

@@ -49,15 +49,16 @@ const CARDS = {
   },
 };
 
-// Roles where error-detection is primary; otherwise copied-content is primary
-const ERROR_DETECTION_PRIMARY = ['student', 'researcher'];
+import { normalizeRole } from '../../config/rolePermissions';
 
 export default function AnalysisCard({ type, role }) {
   const navigate = useNavigate();
   const card = CARDS[type];
-  const isPrimary = ERROR_DETECTION_PRIMARY.includes(role)
-    ? type === 'error-detection'
-    : type === 'copied-content';
+  const normRole = normalizeRole(role);
+  const isFacultyVariant = normRole === 'faculty_researcher' || normRole === 'faculty';
+  const isPrimary = isFacultyVariant
+    ? type === 'copied-content'
+    : type === 'error-detection';
 
   return (
     <article

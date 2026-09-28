@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import AnalysisSummaryCards from '../components/reportsHistory/AnalysisSummaryCards';
 import AnalysisFilters from '../components/reportsHistory/AnalysisFilters';
@@ -28,14 +29,31 @@ export default function ReportsHistoryPage() {
   const [summary, setSummary]         = useState({ total: 0, errorDetection: 0, copiedContent: 0, reportsAvailable: 0 });
   const [filters, setFilters]         = useState(DEFAULT_FILTERS);
   const [page, setPage]               = useState(1);
+  const [loading, setLoading]         = useState(true);
 
   useEffect(() => {
-    getAnalyses().then(data => {
-      // Students only see error-detection records
-      const visible = showCopiedContent ? data : data.filter(a => a.type === 'error-detection');
-      setAllAnalyses(visible);
-      setSummary(getAnalysisSummary(visible));
-    });
+    let isMounted = true;
+    setLoading(true);
+
+    getAnalyses()
+      .then(data => {
+        if (!isMounted) return;
+        const list = Array.isArray(data) ? data : [];
+        // Students only see error-detection records
+        const visible = showCopiedContent ? list : list.filter(a => a.type === 'error-detection');
+        setAllAnalyses(visible);
+        setSummary(getAnalysisSummary(visible));
+      })
+      .catch(err => {
+        console.error('[ReportsHistoryPage] Failed to fetch analyses:', err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [showCopiedContent]);
 
   function setFilter(key, value) {
@@ -56,12 +74,14 @@ export default function ReportsHistoryPage() {
     filters.sortOrder    !== 'newest';
 
   const filtered = useMemo(() => {
-    const q = filters.search.toLowerCase();
+    const q = (filters.search || '').trim().toLowerCase();
     const result = allAnalyses.filter(a => {
-      if (q && !a.fileName.toLowerCase().includes(q) && !a.typeLabel.toLowerCase().includes(q)) return false;
+      const fileNameStr = (a.fileName || a.title || '').toLowerCase();
+      const typeLabelStr = (a.typeLabel || '').toLowerCase();
+      if (q && !fileNameStr.includes(q) && !typeLabelStr.includes(q)) return false;
       if (filters.typeFilter   !== 'all' && a.type   !== filters.typeFilter)   return false;
       if (filters.statusFilter !== 'all' && a.status !== filters.statusFilter) return false;
-      if (!isWithinRange(a.date, filters.dateFilter)) return false;
+      if (a.date && !isWithinRange(a.date, filters.dateFilter)) return false;
       return true;
     });
     return sortItems(result, filters.sortOrder);
@@ -98,7 +118,7 @@ export default function ReportsHistoryPage() {
         />
 
         {/* Result count */}
-        {allAnalyses.length > 0 && (
+        {!loading && allAnalyses.length > 0 && (
           <p className="text-xs text-slate-400" aria-live="polite" aria-atomic="true">
             {filtered.length === 0
               ? 'No results'
@@ -107,7 +127,12 @@ export default function ReportsHistoryPage() {
         )}
 
         {/* List */}
-        {allAnalyses.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 shadow-card text-center gap-3">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-sm font-medium text-slate-600">Loading analysis reports…</p>
+          </div>
+        ) : allAnalyses.length === 0 ? (
           <EmptyAnalysis showCopiedContent={showCopiedContent} />
         ) : filtered.length === 0 ? (
           <NoAnalysisResults onClear={clearFilters} />

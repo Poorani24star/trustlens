@@ -11,10 +11,10 @@ import SelectedZipCard from '../components/copiedContent/SelectedZipCard';
 import ZipContentSummary from '../components/copiedContent/ZipContentSummary';
 import ZipReviewSummary from '../components/copiedContent/ZipReviewSummary';
 import StepIndicator from '../components/copiedContent/StepIndicator';
+import LiveAnalysisProgressModal from '../components/analysis/LiveAnalysisProgressModal';
 import { useAuth } from '../context/AuthContext';
 import { uploadCopiedContentDocuments } from '../services/uploadService';
-import { extractText } from '../services/extractionService';
-import { analyzeCopiedContent } from '../services/copiedContentService';
+import { useAnalysisProgress } from '../hooks/useAnalysisProgress';
 
 const MAX_DOCS = 60;
 const SUPPORTED_EXTS = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
@@ -73,11 +73,72 @@ export default function CopiedContentUpload() {
   const [processingStage, setProcessingStage] = useState('');
   const [toast, setToast]                     = useState(null);
 
+  // ── Live Analysis Progress Queue Hook ──────────────────────────────────────
+  const {
+    jobId,
+    status: jobStatus,
+    progress: jobProgress,
+    result: jobResult,
+    error: jobError,
+    isRunning: isJobRunning,
+    startJob,
+    cancelJob,
+    retryFile,
+    reset: resetJob
+  } = useAnalysisProgress({
+    onComplete: (result) => {
+      setIsProcessing(false);
+      if (result && result.reportId) {
+        setToast({ message: 'Comparison complete! Report saved successfully.', variant: 'success' });
+        setTimeout(() => {
+          navigate(`/reports/${result.reportId}`, {
+            state: {
+              newReportId: result.reportId,
+              message: 'Copied content analysis complete.'
+            }
+          });
+        }, 700);
+      }
+    },
+    onError: (err) => {
+      setIsProcessing(false);
+      setUploadError(typeof err === 'string' ? err : err?.message || 'Analysis failed. Please try again.');
+    },
+    onCancel: () => {
+      setIsProcessing(false);
+      setToast({ message: 'Analysis was cancelled.', variant: 'info' });
+    }
+  });
+
+  const handleViewReport = useCallback(() => {
+    const repId = jobResult?.reportId;
+    if (!repId) return;
+    navigate(`/reports/${repId}`, {
+      state: {
+        newReportId: repId,
+        report: {
+          id: repId,
+          reportId: repId,
+          reportType: 'copied-content',
+          status: 'completed',
+          createdAt: new Date().toISOString(),
+          ...jobResult,
+        },
+        message: 'Copied content analysis complete.'
+      }
+    });
+  }, [jobResult, navigate]);
+
+  const handleCloseModal = useCallback(() => {
+    resetJob();
+    setIsProcessing(false);
+  }, [resetJob]);
+
   // ── Derived ────────────────────────────────────────────────────────────────
   const overLimit = supportedFiles.length > MAX_DOCS;
   const isEmpty   = selectedZip && !isValidating && supportedFiles.length === 0 && unsupportedFiles.length === 0;
   const hasValidated = selectedZip && !isValidating && (supportedFiles.length > 0 || unsupportedFiles.length > 0 || isEmpty);
-  const canSubmit = hasValidated && supportedFiles.length > 0 && !overLimit && !isProcessing;
+  const canSubmit = hasValidated && supportedFiles.length > 0 && !overLimit && !isProcessing && !isJobRunning;
   const currentStep = deriveStep(selectedZip, isValidating, supportedFiles);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -124,7 +185,8 @@ export default function CopiedContentUpload() {
     setUnsupportedFiles([]);
     setUploadError('');
     setToast(null);
-  }, []);
+    resetJob();
+  }, [resetJob]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -134,34 +196,26 @@ export default function CopiedContentUpload() {
     setUploadError('');
 
     try {
-      // Step 1: Upload ZIP file
+      // Step 1: Upload ZIP file to register session
       setProcessingStage('Uploading ZIP package to server…');
       const uploadResult = await uploadCopiedContentDocuments(selectedZip);
-      const uploadId = uploadResult.uploadId;
+      const uploadId = uploadResult?.uploadId;
 
-      // Step 2: Extract text from zip contents
-      setProcessingStage('Extracting documents from ZIP…');
-      await extractText(uploadId, 'copied-content');
-
-      // Step 3: Run Copied Content Pairwise Engine and persist report
-      setProcessingStage('Running pairwise content comparison engine and saving report…');
-      const analysisResult = await analyzeCopiedContent(uploadId);
-
-      // Verify that analysisResult returned a valid reportId from backend persistence
-      if (!analysisResult || !analysisResult.reportId) {
-        throw new Error('Analysis completed, but the report could not be saved.');
+      if (!uploadId) {
+        throw new Error('Upload failed: missing uploadId session token.');
       }
 
-      setToast({ message: 'Comparison complete! Report saved successfully.', variant: 'success' });
-
-      setTimeout(() => {
-        navigate(`/reports/${analysisResult.reportId}`, {
-          state: {
-            newReportId: analysisResult.reportId,
-            message: 'Copied content analysis complete.'
-          }
-        });
-      }, 800);
+      // Step 2: Queue Live Analysis Background Job with SSE stream
+      setProcessingStage('Queuing document processing job…');
+      await startJob({
+        type: 'copied-content',
+        uploadId,
+        files: supportedFiles.map((name, i) => ({
+          originalName: name,
+          name,
+          id: `file_${i + 1}`
+        }))
+      });
 
     } catch (err) {
       console.error('[CopiedContentUpload] Pipeline error:', err);
@@ -353,6 +407,20 @@ export default function CopiedContentUpload() {
             Review highlighted matches before making a final decision.
           </p>
         </aside>
+
+        {/* ── Live Analysis Progress & Background Queue Modal ── */}
+        <LiveAnalysisProgressModal
+          isOpen={isJobRunning || jobStatus === 'completed' || jobStatus === 'failed'}
+          status={jobStatus}
+          progress={jobProgress}
+          result={jobResult}
+          error={uploadError || jobError}
+          onCancel={cancelJob}
+          onRetryFile={retryFile}
+          onClose={handleCloseModal}
+          onViewReport={handleViewReport}
+          title={isFaculty ? 'Analyzing Student Submissions' : 'Comparing Documents'}
+        />
 
       </div>
     </DashboardLayout>

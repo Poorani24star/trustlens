@@ -138,9 +138,36 @@ async function updateUserProfile(uid, { name }) {
   };
 }
 
+/**
+ * Retrieves user profile from Firestore searching by email
+ */
+async function getUserProfileByEmail(email) {
+  if (!isFirebaseInitialized() || !email) {
+    return null;
+  }
+
+  const db = getDb();
+  const snapshot = await db.collection('users').where('email', '==', email.trim().toLowerCase()).limit(1).get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const doc = snapshot.docs[0];
+  const data = doc.data();
+  return {
+    uid: data.uid || doc.id,
+    name: data.name,
+    email: data.email,
+    role: data.role,
+    status: data.status || 'active',
+  };
+}
+
 module.exports = {
   createUserProfile,
   getUserProfile,
+  getUserProfileByEmail,
   updateUserProfile,
   ALLOWED_PUBLIC_ROLES,
   ALL_VALID_ROLES,

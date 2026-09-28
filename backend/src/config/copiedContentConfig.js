@@ -5,7 +5,7 @@ module.exports = {
   // Document level safeguards
   MIN_DOCUMENTS: 2,
   MIN_REQUIRED_DOCUMENTS: 2, // Backwards compatibility alias
-  MAX_SUPPORTED_DOCUMENTS: 10,
+  MAX_SUPPORTED_DOCUMENTS: 60,
 
   // Passage segmentation parameters
   MIN_PASSAGE_LENGTH: 15,

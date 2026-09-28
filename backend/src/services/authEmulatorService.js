@@ -53,7 +53,6 @@ function generateTokens(user) {
   const idToken = createJwt(payload);
   const refreshToken = crypto.randomBytes(32).toString('hex');
   user.refreshToken = refreshToken;
-  saveUsers();
 
   return {
     idToken,
@@ -81,25 +80,43 @@ function loadUsers() {
       uid: 'admin-demo-1',
       email: 'admin@demo.com',
       password: 'Password123!',
-      displayName: 'Admin Demo'
+      displayName: 'Admin Demo',
+      role: 'admin'
+    },
+    {
+      uid: 'admin-trustlens-1',
+      email: 'admin@trustlens.edu',
+      password: 'Admin@1234',
+      displayName: 'TrustLens Administrator',
+      role: 'admin'
     },
     {
       uid: 'test-student-1',
       email: 'student1@example.com',
       password: 'Password123!',
-      displayName: 'Student One'
+      displayName: 'Student One',
+      role: 'student'
     },
     {
       uid: 'test-faculty-1',
       email: 'faculty1@example.com',
       password: 'Password123!',
-      displayName: 'Faculty Researcher One'
+      displayName: 'Faculty Researcher One',
+      role: 'faculty_researcher'
+    },
+    {
+      uid: 'demo-faculty-default',
+      email: 'faculty@demo.com',
+      password: 'Password123!',
+      displayName: 'Demo Faculty',
+      role: 'faculty_researcher'
     },
     {
       uid: 'demo-student-default',
       email: 'student@demo.com',
       password: 'password123',
-      displayName: 'Demo Student'
+      displayName: 'Demo Student',
+      role: 'student'
     }
   ];
 
@@ -114,8 +131,12 @@ function loadUsers() {
         salt,
         passwordHash: hashPassword(acc.password, salt),
         displayName: acc.displayName,
+        role: acc.role,
         createdAt: new Date().toISOString()
       };
+      modified = true;
+    } else if (!usersStore[normEmail].role && acc.role) {
+      usersStore[normEmail].role = acc.role;
       modified = true;
     }
   }
@@ -123,6 +144,19 @@ function loadUsers() {
   if (modified) {
     saveUsers();
   }
+}
+
+function getUserByUidOrEmail(uid, email) {
+  loadUsers();
+  if (email) {
+    const byEmail = usersStore[email.toLowerCase().trim()];
+    if (byEmail) return byEmail;
+  }
+  if (uid) {
+    const byUid = Object.values(usersStore).find(u => u.uid === uid);
+    if (byUid) return byUid;
+  }
+  return null;
 }
 
 function saveUsers() {
@@ -314,6 +348,40 @@ function handleRequest(req, res) {
       }, req);
     }
 
+    // 5. Send Oob Code (Password Reset): accounts:sendOobCode
+    if (url.includes('accounts:sendOobCode')) {
+      const email = (data.email || '').trim().toLowerCase();
+      if (!email) {
+        return sendError(res, 400, 'MISSING_EMAIL', null, req);
+      }
+      const user = usersStore[email];
+      if (!user) {
+        return sendError(res, 400, 'EMAIL_NOT_FOUND', null, req);
+      }
+      const oobCode = `reset_${crypto.randomBytes(16).toString('hex')}`;
+      user.resetToken = oobCode;
+      saveUsers();
+      return sendJson(res, 200, { email: user.email, oobCode }, req);
+    }
+
+    // 6. Reset Password: accounts:resetPassword
+    if (url.includes('accounts:resetPassword')) {
+      const { oobCode, newPassword } = data;
+      if (!newPassword || newPassword.length < 6) {
+        return sendError(res, 400, 'WEAK_PASSWORD', null, req);
+      }
+      const user = Object.values(usersStore).find(u => u.resetToken === oobCode);
+      if (!user) {
+        return sendError(res, 400, 'INVALID_OOB_CODE', null, req);
+      }
+      const salt = crypto.randomBytes(16).toString('hex');
+      user.salt = salt;
+      user.passwordHash = hashPassword(newPassword, salt);
+      delete user.resetToken;
+      saveUsers();
+      return sendJson(res, 200, { email: user.email, requestType: 'PASSWORD_RESET' }, req);
+    }
+
     // Default fallback: 404
     sendError(res, 404, 'NOT_FOUND', null, req);
   });
@@ -358,9 +426,33 @@ function stopAuthEmulator() {
   });
 }
 
+function updateUserPassword(email, newPassword) {
+  loadUsers();
+  const normEmail = (email || '').trim().toLowerCase();
+  const user = usersStore[normEmail];
+  if (!user) {
+    return { success: false, message: 'User not found.' };
+  }
+  const salt = crypto.randomBytes(16).toString('hex');
+  user.salt = salt;
+  user.passwordHash = hashPassword(newPassword, salt);
+  delete user.resetToken;
+  saveUsers();
+  return { success: true, user };
+}
+
+function userExists(email) {
+  loadUsers();
+  const normEmail = (email || '').trim().toLowerCase();
+  return !!usersStore[normEmail];
+}
+
 module.exports = {
   startAuthEmulator,
   stopAuthEmulator,
+  updateUserPassword,
+  userExists,
+  getUserByUidOrEmail,
   AUTH_PORT,
   AUTH_HOST
 };

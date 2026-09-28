@@ -3,6 +3,10 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const { authenticateUser, authorizeRoles } = require('../middleware/authMiddleware');
 
+// Public Auth Recovery Routes
+router.post('/forgot-password', userController.forgotPassword);
+router.post('/reset-password', userController.resetPassword);
+
 // Protected User Routes
 router.get('/me', authenticateUser, userController.getMe);
 router.post('/profile', authenticateUser, userController.createProfile);

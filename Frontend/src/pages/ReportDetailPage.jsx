@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Trash2, Download, PlusCircle, CheckCircle2, AlertTriangle, HelpCircle, MinusCircle, Info, FileText, ScanSearch, User, ChevronDown, ChevronUp, ShieldCheck, AlertOctagon, Check } from 'lucide-react';
+import { ArrowLeft, Trash2, Download, PlusCircle, CheckCircle2, AlertTriangle, HelpCircle, MinusCircle, Info, FileText, ScanSearch, User, ChevronDown, ChevronUp, ShieldCheck, AlertOctagon, Check, ArrowLeftRight } from 'lucide-react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import Button from '../components/Button';
@@ -11,6 +11,7 @@ import { getAdminReportDetails } from '../services/adminService';
 import { generatePdfReport } from '../utils/pdfGenerator';
 import { ROLE_LABELS, ROLE_COLORS, ROLE_FALLBACK_COLOR } from '../constants/roles';
 import CopiedContentResultCard from '../components/copiedContent/CopiedContentResultCard';
+import SideBySideDiffViewer from '../components/copiedContent/SideBySideDiffViewer';
 
 function ReportStatusBadge({ status }) {
   const s = (status || 'completed').toLowerCase();
@@ -61,6 +62,7 @@ export default function ReportDetailPage() {
   const [pairFilter, setPairFilter] = useState('all');
   const [statementFilter, setStatementFilter] = useState('all');
   const [expandedFindings, setExpandedFindings] = useState({});
+  const [activeDiffPair, setActiveDiffPair] = useState(null);
 
   const toggleFindingExpand = (key) => {
     setExpandedFindings(prev => ({
@@ -284,6 +286,23 @@ export default function ReportDetailPage() {
                 <PlusCircle className="w-3.5 h-3.5" /> Run New Analysis
               </Button>
             )}
+            {isCopiedContent && pairsList.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const sorted = [...pairsList].sort((a, b) => {
+                    const sA = a.overallMatchedContentPercentage ?? a.similarity ?? 0;
+                    const sB = b.overallMatchedContentPercentage ?? b.similarity ?? 0;
+                    return sB - sA;
+                  });
+                  setActiveDiffPair(sorted[0] || pairsList[0]);
+                }}
+                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5" /> Side-by-Side Diff
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -352,6 +371,18 @@ export default function ReportDetailPage() {
                     <span className="truncate font-semibold text-slate-800" title={d.originalName || d.fileName}>{d.originalName || d.fileName || `Document #${dIdx + 1}`}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {(report.qualityNotes || report.document?.qualityNotes || summary?.qualityNotes) && (
+            <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5 animate-fadeIn">
+              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="font-bold block text-blue-950">Handwriting & Document OCR Notice</span>
+                <p className="text-blue-800 leading-relaxed">
+                  {report.qualityNotes || report.document?.qualityNotes || summary?.qualityNotes}
+                </p>
               </div>
             </div>
           )}
@@ -707,6 +738,13 @@ export default function ReportDetailPage() {
               )
             )}
           </section>
+        )}
+        {/* Interactive Side-by-Side Diff Viewer Modal */}
+        {activeDiffPair && (
+          <SideBySideDiffViewer
+            pair={activeDiffPair}
+            onClose={() => setActiveDiffPair(null)}
+          />
         )}
       </div>
     </Layout>

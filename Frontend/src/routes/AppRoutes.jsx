@@ -5,6 +5,7 @@ import Logo from '../components/Logo';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import UserDashboard from '../pages/UserDashboard';
 import ErrorDetectionUpload from '../pages/ErrorDetectionUpload';
 import CopiedContentUpload from '../pages/CopiedContentUpload';
@@ -129,8 +130,9 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
 
-      <Route path="/login"    element={<GuestRoute><LoginPage /></GuestRoute>} />
-      <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+      <Route path="/login"           element={<LoginPage />} />
+      <Route path="/register"        element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
 

@@ -7,7 +7,7 @@ import ActivityList from '../components/dashboard/ActivityList';
 import HelpSection from '../components/dashboard/HelpSection';
 import { useAuth } from '../context/AuthContext';
 import { getActivity, getStats } from '../services/dashboardService';
-import { hasPermission } from '../config/rolePermissions';
+import { hasPermission, normalizeRole } from '../config/rolePermissions';
 
 // Stat icons
 const STAT_ICONS = {
@@ -50,14 +50,19 @@ export default function UserDashboard() {
     getStats().then(setStats);
   }, []);
 
+  const normRole = normalizeRole(user?.role);
+  const isFacultyVariant = normRole === 'faculty_researcher' || normRole === 'faculty' || normRole === 'researcher';
+
   // Build card list based on role permissions — students never see copied-content
   const canAccessCopiedContent = hasPermission(user?.role, 'copiedContent');
   const cardOrder = canAccessCopiedContent
-    ? (user?.role === 'faculty' ? ['copied-content', 'error-detection'] : ['error-detection', 'copied-content'])
+    ? (isFacultyVariant ? ['copied-content', 'error-detection'] : ['error-detection', 'copied-content'])
     : ['error-detection'];
 
+  const pageTitle = isFacultyVariant ? 'Faculty Workspace' : 'Dashboard';
+
   return (
-    <DashboardLayout pageTitle="Dashboard">
+    <DashboardLayout pageTitle={pageTitle}>
       <div className="max-w-5xl mx-auto space-y-8">
 
         {/* Welcome */}

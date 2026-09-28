@@ -46,7 +46,8 @@ function detectTopics(rawText) {
       const normalizedKw = normalizeText(kw);
       if (!normalizedKw) continue;
 
-      const regex = new RegExp(`\\b${normalizedKw}(?:s|es)?\\b`, 'gi');
+      const escapedKw = normalizedKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedKw}(?:s|es)?\\b`, 'gi');
       const matches = normalized.match(regex);
 
       if (matches && matches.length > 0) {

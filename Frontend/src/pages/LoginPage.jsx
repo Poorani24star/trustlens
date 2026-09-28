@@ -5,6 +5,8 @@ import Input from '../components/Input';
 import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import { normalizeRole } from '../config/rolePermissions';
+import { ROLE_LABELS, ROLE_COLORS } from '../constants/roles';
 
 function validate(email, password) {
   const errors = {};
@@ -14,8 +16,14 @@ function validate(email, password) {
   return errors;
 }
 
+const DEMO_ACCOUNTS = [
+  { label: 'Student', email: 'student@demo.com', password: 'password123', role: 'student' },
+  { label: 'Faculty / Researcher', email: 'faculty1@example.com', password: 'Password123!', role: 'faculty_researcher' },
+  { label: 'Admin', email: 'admin@demo.com', password: 'Password123!', role: 'admin' },
+];
+
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, logout, user } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ email: '', password: '' });
@@ -28,6 +36,12 @@ export default function LoginPage() {
     setForm(f => ({ ...f, [name]: value }));
     if (errors[name]) setErrors(e => ({ ...e, [name]: '' }));
     if (serverError) setServerError('');
+  }
+
+  function handleFillDemo(acc) {
+    setForm({ email: acc.email, password: acc.password });
+    setErrors({});
+    setServerError('');
   }
 
   async function handleSubmit(e) {
@@ -46,6 +60,10 @@ export default function LoginPage() {
     }
   }
 
+  const normRole = normalizeRole(user?.role);
+  const currentRoleLabel = ROLE_LABELS[normRole] || ROLE_LABELS[user?.role] || user?.role || 'User';
+  const currentRoleBadgeColor = ROLE_COLORS[normRole] || ROLE_COLORS.student;
+
   return (
     <AuthLayout
       heading="Verify documents with confidence."
@@ -56,6 +74,48 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
           <p className="text-sm text-slate-500 mt-1">Sign in to continue to TrustLens.</p>
         </div>
+
+        {/* Active Session Notice & Switcher */}
+        {user && (
+          <div className="p-4 rounded-xl bg-slate-50 border border-blue-200/80 text-sm text-slate-700 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Signed In As</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${currentRoleBadgeColor}`}>
+                    {currentRoleLabel}
+                  </span>
+                </div>
+                <p className="font-semibold text-slate-900 mt-1 truncate max-w-[280px]">
+                  {user.email}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => navigate(normRole === 'admin' ? '/admin/dashboard' : '/dashboard')}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs cursor-pointer"
+                >
+                  Go to Dashboard →
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                    setForm({ email: '', password: '' });
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 border-t border-slate-200/70 pt-2">
+              To switch accounts, select a demo role below or enter credentials:
+            </p>
+          </div>
+        )}
 
         {serverError && (
           <div role="alert" className="flex items-start gap-2.5 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
@@ -95,7 +155,7 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? 'Signing in…' : 'Login'}
+            {loading ? 'Signing in…' : (user ? 'Switch Account & Sign In' : 'Login')}
           </Button>
         </form>
 
@@ -127,10 +187,22 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Demo hint */}
-      <p className="mt-4 text-center text-xs text-slate-400">
-        Demo: <span className="font-mono">student@demo.com</span> / <span className="font-mono">password123</span>
-      </p>
+      {/* Demo quick-select shortcuts */}
+      <div className="mt-4 p-3.5 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs text-slate-600">
+        <p className="font-medium text-slate-700 mb-2 text-center">Quick Demo Credentials (click to fill):</p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {DEMO_ACCOUNTS.map(acc => (
+            <button
+              key={acc.role}
+              type="button"
+              onClick={() => handleFillDemo(acc)}
+              className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 font-medium transition-colors text-[11px] shadow-xs cursor-pointer"
+            >
+              <span className="font-semibold text-blue-600">{acc.label}</span>: {acc.email}
+            </button>
+          ))}
+        </div>
+      </div>
     </AuthLayout>
   );
 }

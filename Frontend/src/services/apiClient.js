@@ -9,14 +9,14 @@ export async function apiRequest(endpoint, options = {}) {
 
   const headers = { ...options.headers };
 
-  // Attach Firebase ID Token or session demo token if user is logged in
-  let token = null;
+  // Attach Firebase ID Token or session token
+  let token = options.token || (headers['Authorization'] ? headers['Authorization'].replace('Bearer ', '').trim() : null);
 
-  if (auth.currentUser) {
+  if (!token && auth.currentUser) {
     try {
       token = await Promise.race([
         auth.currentUser.getIdToken(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Token fetch timeout')), 2000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Token fetch timeout')), 8000))
       ]);
     } catch (err) {
       console.warn('[ApiClient] Unable to retrieve Firebase ID token, using session token:', err.message);

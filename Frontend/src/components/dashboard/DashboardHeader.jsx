@@ -1,14 +1,24 @@
-import { Link } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Bell, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ROLE_LABELS } from '../../constants/roles';
+
+import { normalizeRole } from '../../config/rolePermissions';
 
 function getInitials(name = '') {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 }
 
 export default function DashboardHeader({ onMenuOpen, pageTitle = 'Dashboard' }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const normRole = normalizeRole(user?.role);
+  const roleLabel = ROLE_LABELS[normRole] || ROLE_LABELS[user?.role] || user?.role || 'User';
+
+  async function handleSignOut() {
+    await logout();
+    navigate('/login');
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 h-16 flex items-center px-4 sm:px-6 gap-4">
@@ -35,7 +45,7 @@ export default function DashboardHeader({ onMenuOpen, pageTitle = 'Dashboard' })
         <Link
           to="/profile"
           className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-blue-600"
-          aria-label={`Go to profile — ${user?.name}, ${ROLE_LABELS[user?.role] ?? user?.role}`}
+          aria-label={`Go to profile — ${user?.name}, ${roleLabel}`}
         >
           <span
             className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 select-none"
@@ -45,9 +55,19 @@ export default function DashboardHeader({ onMenuOpen, pageTitle = 'Dashboard' })
           </span>
           <span className="hidden sm:flex flex-col leading-tight text-right">
             <span className="text-sm font-medium text-slate-900 truncate max-w-[120px]">{user?.name?.split(' ')[0]}</span>
-            <span className="text-xs text-slate-500">{ROLE_LABELS[user?.role] ?? user?.role}</span>
+            <span className="text-xs text-slate-500">{roleLabel}</span>
           </span>
         </Link>
+
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-red-600 cursor-pointer"
+          title="Sign Out"
+          aria-label="Sign Out"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="hidden md:inline">Sign Out</span>
+        </button>
       </div>
     </header>
   );
