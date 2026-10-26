@@ -112,46 +112,21 @@ async function authenticateUser(req, res, next) {
           uid: emUser.uid,
           name: emUser.displayName || (emUser.email ? emUser.email.split('@')[0] : 'User'),
           email: emUser.email,
-          role: emUser.role || (emUser.email && emUser.email.startsWith('admin') ? 'admin' : (emUser.email && emUser.email.startsWith('faculty') ? 'faculty_researcher' : 'student')),
+          role: emUser.role || 'student',
           status: 'active'
         };
       }
     }
+    const hasProfile = Boolean(userProfile);
 
     if (!userProfile) {
-      const normEmail = (email || '').toLowerCase().trim();
-      let inferredRole = 'student';
-      if (normEmail.includes('admin')) {
-        inferredRole = 'admin';
-      } else if (normEmail.includes('faculty') || normEmail.includes('researcher')) {
-        inferredRole = 'faculty_researcher';
-      }
-
       userProfile = {
         uid,
         name: email ? email.split('@')[0] : 'User',
         email,
-        role: inferredRole,
+        role: 'student',
         status: 'active',
       };
-
-      // Best-effort: persist to Firestore
-      try {
-        const { getDb, isFirebaseInitialized: isDbInit } = require('../config/firebaseAdmin');
-        if (isDbInit()) {
-          const db = getDb();
-          await db.collection('users').doc(uid).set({
-            uid,
-            name: userProfile.name,
-            email: userProfile.email,
-            role: userProfile.role,
-            status: 'active',
-            createdAt: new Date().toISOString()
-          }, { merge: true });
-        }
-      } catch (saveErr) {
-        // Non-blocking
-      }
     }
 
     // Check account status
@@ -164,7 +139,7 @@ async function authenticateUser(req, res, next) {
 
     req.user = {
       ...userProfile,
-      isProfileComplete: true,
+      isProfileComplete: hasProfile,
     };
 
     next();
@@ -258,11 +233,7 @@ async function optionalAuth(req, res, next) {
       if (userProfile) {
         req.user = { ...userProfile, isProfileComplete: true };
       } else {
-        const normEmail = (email || '').toLowerCase().trim();
-        let inferredRole = 'student';
-        if (normEmail.includes('admin')) inferredRole = 'admin';
-        else if (normEmail.includes('faculty') || normEmail.includes('researcher')) inferredRole = 'faculty_researcher';
-        req.user = { uid, email, role: inferredRole, status: 'active', isProfileComplete: true };
+        req.user = { uid, email, role: 'student', status: 'active', isProfileComplete: false };
       }
     }
   } catch (err) {

@@ -34,14 +34,11 @@ export function setStoredUser(user) {
   }
 }
 
-export function resolveUserRole(email, explicitRole = null) {
+export function resolveUserRole(_email, explicitRole = null) {
   if (explicitRole) {
     const norm = normalizeRole(explicitRole);
     if (norm) return norm;
   }
-  const e = (email || '').toLowerCase().trim();
-  if (e.includes('admin')) return 'admin';
-  if (e.includes('faculty') || e.includes('researcher')) return 'faculty_researcher';
   return 'student';
 }
 
@@ -146,7 +143,7 @@ export async function login(email, password) {
       return finalUser;
     }
 
-    // 3. Fallback safe profile with resolved role (never blindly downgrades admin/faculty to student)
+    // 3. Fallback profile uses least privilege until a backend profile is available
     const resolvedRole = resolveUserRole(trimmedEmail);
     const safeUser = {
       uid: user.uid,
@@ -223,28 +220,30 @@ export async function register({ name, email, password, role }) {
     const credential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
     const user = credential.user;
 
-    // Create user profile in Firestore backend
-    const res = await apiRequest('/users/profile', {
-      method: 'POST',
-      body: JSON.stringify({ name: trimmedName, role: role || 'student' }),
-    });
-
-    const safeUser = res && res.user ? res.user : {
-      uid: user.uid,
-      name: trimmedName,
-      email: user.email,
-      role: role || 'student',
-      status: 'active',
-    };
-
-    setStoredUser(safeUser);
-    return safeUser;
+    return await createBackendProfile(user, trimmedName, role);
   } catch (err) {
     if (err.code === 'auth/network-request-failed') {
       throw new Error('Unable to connect to the authentication service. Please ensure the backend server is running.');
     }
     if (err.code === 'auth/email-already-in-use') {
-      throw new Error('An account with this email already exists.');
+      let recoverySessionCreated = false;
+      try {
+        const credential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
+        recoverySessionCreated = true;
+        return await createBackendProfile(credential.user, trimmedName, role);
+      } catch (recoveryErr) {
+        if (recoverySessionCreated) {
+          try {
+            await logout();
+          } catch (cleanupErr) {
+            console.warn('[AuthService] Recovery session cleanup notice:', cleanupErr.message);
+          }
+        }
+        if (recoveryErr.statusCode === 409 || recoveryErr.code === 'auth/invalid-credential' || recoveryErr.code === 'auth/wrong-password') {
+          throw new Error('An account with this email already exists.');
+        }
+        throw recoveryErr;
+      }
     }
     if (err.code === 'auth/weak-password') {
       throw new Error('Password should be at least 6 characters long.');
@@ -254,6 +253,24 @@ export async function register({ name, email, password, role }) {
     }
     throw new Error(err.message || 'Registration failed. Please try again.');
   }
+}
+
+async function createBackendProfile(user, name, role) {
+  const res = await apiRequest('/users/profile', {
+    method: 'POST',
+    body: JSON.stringify({ name, role: role || 'student' }),
+  });
+
+  const safeUser = res && res.user ? res.user : {
+    uid: user.uid,
+    name,
+    email: user.email,
+    role: role || 'student',
+    status: 'active',
+  };
+
+  setStoredUser(safeUser);
+  return safeUser;
 }
 
 /**
@@ -307,7 +324,7 @@ export function subscribeToAuthChanges(callback) {
         }
       }
 
-      // Safe fallback when profile doc has not loaded yet: preserve stored role or infer from email
+      // Safe fallback when profile doc has not loaded yet: preserve stored role or use least privilege
       const stored = getStoredUser();
       const role = (stored && stored.email === firebaseUser.email && stored.role)
         ? normalizeRole(stored.role)
@@ -384,4 +401,3 @@ export async function resetUserPasswordDirect({ email, newPassword, confirmPassw
   });
   return res;
 }
-

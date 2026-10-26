@@ -24,13 +24,6 @@ async function createUserProfile(uid, email, { name, role }) {
 
   const db = getDb();
   const userRef = db.collection('users').doc(uid);
-  const doc = await userRef.get();
-
-  if (doc.exists) {
-    const err = new Error('User profile already exists');
-    err.statusCode = 409;
-    throw err;
-  }
 
   const now = FieldValue.serverTimestamp();
   const userDoc = {
@@ -43,7 +36,15 @@ async function createUserProfile(uid, email, { name, role }) {
     updatedAt: now,
   };
 
-  await userRef.set(userDoc);
+  await db.runTransaction(async transaction => {
+    const doc = await transaction.get(userRef);
+    if (doc.exists) {
+      const err = new Error('User profile already exists');
+      err.statusCode = 409;
+      throw err;
+    }
+    transaction.create(userRef, userDoc);
+  });
 
   // Log user registration activity safely (non-blocking)
   try {
