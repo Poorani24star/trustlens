@@ -298,9 +298,9 @@ export default function ReportDetailPage() {
 
   return (
     <Layout pageTitle={`Report Details — ${docName}`}>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full max-w-4xl min-w-0 mx-auto space-y-6">
 
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-start justify-between gap-4 flex-wrap min-w-0">
           <button
             onClick={() => navigate(backPath)}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
@@ -308,7 +308,7 @@ export default function ReportDetailPage() {
             <ArrowLeft className="w-4 h-4" /> {backText}
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="w-full sm:w-auto flex items-center justify-start sm:justify-end gap-2 flex-wrap min-w-0">
             {!isAdminView && (
               <Button variant="outline" size="sm" onClick={() => navigate(isErrorDetection ? '/error-detection' : '/copied-content')}>
                 <PlusCircle className="w-3.5 h-3.5" /> Run New Analysis
@@ -354,9 +354,9 @@ export default function ReportDetailPage() {
 
         {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 space-y-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
+        <div className="w-full min-w-0 bg-white rounded-2xl border border-slate-200 shadow-card p-4 sm:p-6 space-y-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap min-w-0">
+            <div className="min-w-0 flex-1 max-w-full">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full border ${isErrorDetection ? 'bg-blue-50 text-blue-700 border-blue-200' : isCopiedContent ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-300'}`}>
                   {isErrorDetection ? 'Error Detection Report' : isCopiedContent ? 'Copied Content Detection Report' : 'System Report'}
@@ -382,10 +382,10 @@ export default function ReportDetailPage() {
                   </span>
                 )}
                 <span className="text-xs text-slate-400">•</span>
-                <span className="text-xs text-slate-500 font-medium">ID: {report.id}</span>
+                <span className="max-w-full text-xs text-slate-500 font-medium break-all">ID: {report.id}</span>
               </div>
-              <h1 className="text-xl font-bold text-slate-900">{isCopiedContent ? 'Copied Content Detection Report' : (report.title || docName)}</h1>
-              <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+              <h1 className="max-w-full text-xl font-bold text-slate-900 break-words [overflow-wrap:anywhere]">{isCopiedContent ? 'Copied Content Detection Report' : (report.title || docName)}</h1>
+              <p className="max-w-full text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap break-words [overflow-wrap:anywhere]">
                 <span>Documents Analyzed: <strong className="text-slate-700">{totalDocsCount} file(s)</strong></span>
                 <span>•</span>
                 {isErrorDetection && <span>Statements Checked: <strong className="text-slate-700">{totalStatements}</strong> •</span>}
@@ -399,9 +399,9 @@ export default function ReportDetailPage() {
           {documentList.length > 1 && (
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <span className="text-xs font-bold text-slate-700 block uppercase tracking-wider">Analyzed Document Batch ({documentList.length} Files)</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs min-w-0">
                 {documentList.map((d, dIdx) => (
-                  <div key={dIdx} className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                  <div key={dIdx} className="min-w-0 max-w-full p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
                     <span className="truncate font-semibold text-slate-800" title={d.originalName || d.fileName}>{d.originalName || d.fileName || `Document #${dIdx + 1}`}</span>
                   </div>
                 ))}
@@ -423,50 +423,50 @@ export default function ReportDetailPage() {
 
           {isErrorDetection && (
             <div className="space-y-3 pt-2 border-t border-slate-100">
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center min-w-0">
+                <div className="min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <span className="text-[11px] text-slate-500 font-medium block">Statements Checked</span>
                   <span className="text-lg font-bold text-slate-900">{totalStatements}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-green-50 border border-green-200">
+                <div className="min-w-0 p-3 rounded-xl bg-green-50 border border-green-200">
                   <span className="text-[11px] text-green-700 font-medium block">Supported</span>
                   <span className="text-lg font-bold text-green-700">{supportedCount}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200">
+                <div className="min-w-0 p-3 rounded-xl bg-red-50 border border-red-200">
                   <span className="text-[11px] text-red-700 font-medium block">Incorrect</span>
                   <span className="text-lg font-bold text-red-700">{incorrectCount}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="min-w-0 p-3 rounded-xl bg-amber-50 border border-amber-200">
                   <span className="text-[11px] text-amber-700 font-medium block">Misleading</span>
                   <span className="text-lg font-bold text-amber-700">{misleadingCount}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+                <div className="min-w-0 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
                   <span className="text-[11px] text-yellow-800 font-medium block">Unsupported</span>
                   <span className="text-lg font-bold text-yellow-800">{unsupportedCount}</span>
                 </div>
               </div>
-              <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 flex-wrap text-xs ${hasIssues ? 'bg-amber-50/80 border-amber-200 text-amber-900' : 'bg-emerald-50/80 border-emerald-200 text-emerald-900'}`}>
-                <div className="flex items-center gap-2.5">
+              <div className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 flex-wrap text-xs ${hasIssues ? 'bg-amber-50/80 border-amber-200 text-amber-900' : 'bg-emerald-50/80 border-emerald-200 text-emerald-900'}`}>
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
                   {hasIssues ? <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" /> : <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />}
                   <div>
                     <span className="font-bold text-sm block">Overall Result: {overallResultTitle}</span>
-                    <span className="text-xs opacity-90">{overallResultSubtitle}</span>
+                    <span className="text-xs opacity-90 break-words [overflow-wrap:anywhere]">{overallResultSubtitle}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] font-semibold">
-                  <span className="px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-2xs text-slate-700">Threshold: 80% Cosine</span>
+                  <span className="max-w-full px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-2xs text-slate-700 break-words [overflow-wrap:anywhere]">Threshold: 80% Cosine</span>
                 </div>
               </div>
             </div>
           )}
 
           {isCopiedContent && (
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 border-t border-slate-100 text-center">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200"><span className="text-[11px] text-slate-500 font-medium block">Total Documents</span><span className="text-lg font-bold text-slate-900">{totalDocsCount}</span></div>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200"><span className="text-[11px] text-slate-500 font-medium block">Total Comparisons</span><span className="text-lg font-bold text-slate-900">{totalComparisonsCount}</span></div>
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200"><span className="text-[11px] text-red-700 font-medium block">High Similarity</span><span className="text-lg font-bold text-red-700">{highSimCount}</span></div>
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200"><span className="text-[11px] text-amber-700 font-medium block">Potential Similarity</span><span className="text-lg font-bold text-amber-700">{potentialSimCount}</span></div>
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200"><span className="text-[11px] text-emerald-700 font-medium block">No Significant</span><span className="text-lg font-bold text-emerald-700">{noSimCount}</span></div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 border-t border-slate-100 text-center min-w-0">
+              <div className="min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200"><span className="text-[11px] text-slate-500 font-medium block break-words">Total Documents</span><span className="text-lg font-bold text-slate-900">{totalDocsCount}</span></div>
+              <div className="min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200"><span className="text-[11px] text-slate-500 font-medium block break-words">Total Comparisons</span><span className="text-lg font-bold text-slate-900">{totalComparisonsCount}</span></div>
+              <div className="min-w-0 p-3 rounded-xl bg-red-50 border border-red-200"><span className="text-[11px] text-red-700 font-medium block break-words">High Similarity</span><span className="text-lg font-bold text-red-700">{highSimCount}</span></div>
+              <div className="min-w-0 p-3 rounded-xl bg-amber-50 border border-amber-200"><span className="text-[11px] text-amber-700 font-medium block break-words">Potential Similarity</span><span className="text-lg font-bold text-amber-700">{potentialSimCount}</span></div>
+              <div className="min-w-0 p-3 rounded-xl bg-emerald-50 border border-emerald-200"><span className="text-[11px] text-emerald-700 font-medium block break-words">No Significant</span><span className="text-lg font-bold text-emerald-700">{noSimCount}</span></div>
             </div>
           )}
         </div>
@@ -482,10 +482,10 @@ export default function ReportDetailPage() {
         )}
 
         {(isErrorDetection || isCopiedContent) && (
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 space-y-5">
+          <section className="w-full min-w-0 bg-white rounded-2xl border border-slate-200 shadow-card p-4 sm:p-6 space-y-5">
             {/* Header & Filter Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-lg font-bold text-slate-900">
                   {isErrorDetection ? 'Prioritized Statement Findings' : 'Document Pair Comparisons'}
                 </h3>
@@ -498,7 +498,7 @@ export default function ReportDetailPage() {
 
               {/* Error Detection Filter Tabs & Controls */}
               {isErrorDetection && (
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
                   <button onClick={() => setStatementFilter('all')} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${statementFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>All ({totalStatements})</button>
                   <button onClick={() => setStatementFilter('incorrect')} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${statementFilter === 'incorrect' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'}`}>Incorrect ({incorrectCount})</button>
                   <button onClick={() => setStatementFilter('misleading')} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${statementFilter === 'misleading' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'}`}>Misleading ({misleadingCount})</button>
@@ -511,7 +511,7 @@ export default function ReportDetailPage() {
 
               {/* Copied Content Filter Tabs */}
               {isCopiedContent && (
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
                   <button onClick={() => setPairFilter('all')} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${pairFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>All ({totalComparisonsCount})</button>
                   <button onClick={() => setPairFilter('high')} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${pairFilter === 'high' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'}`}>High ({highSimCount})</button>
                   <button onClick={() => setPairFilter('potential')} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${pairFilter === 'potential' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'}`}>Potential ({potentialSimCount})</button>
@@ -542,7 +542,7 @@ export default function ReportDetailPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3" role="list">
+                <div className="min-w-0 space-y-3" role="list">
                   {filteredFindings.map((s, idx) => {
                     const statementKey = s.statementId || `stmt-${s.index || idx + 1}`;
                     const category = getFindingCategory(s);
@@ -561,7 +561,7 @@ export default function ReportDetailPage() {
                       return (
                         <div
                           key={statementKey}
-                          className="p-3.5 rounded-xl border border-green-200 bg-green-50/30 hover:bg-green-50/60 transition-colors space-y-2.5"
+                          className="min-w-0 max-w-full p-3.5 rounded-xl border border-green-200 bg-green-50/30 hover:bg-green-50/60 transition-colors space-y-2.5 [overflow-wrap:anywhere]"
                           role="listitem"
                         >
                           <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -668,7 +668,7 @@ export default function ReportDetailPage() {
                       <div
                         key={statementKey}
                         role="listitem"
-                        className={`p-4 rounded-xl border space-y-3 transition-colors
+                        className={`min-w-0 max-w-full p-4 rounded-xl border space-y-3 transition-colors [overflow-wrap:anywhere]
                           ${category === 'incorrect' ? 'bg-red-50/40 border-red-200 hover:bg-red-50/60' : category === 'misleading' ? 'bg-amber-50/40 border-amber-200 hover:bg-amber-50/60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'}`}
                       >
                         <div className="flex items-center justify-between gap-2 flex-wrap">

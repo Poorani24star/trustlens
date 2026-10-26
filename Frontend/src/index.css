@@ -35,3 +35,141 @@
     border-radius: 4px;
   }
 }
+
+/* The application uses Tailwind utility classes extensively. These shared
+   overrides keep the existing component structure while changing the surface,
+   text, border, and form colors for the dark theme. */
+html {
+  background-color: var(--color-bg);
+}
+
+html.dark {
+  color-scheme: dark;
+  --color-surface: #111827;
+  --color-bg: #0f172a;
+  --color-border: #334155;
+  --color-text: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-primary-light: #172554;
+}
+
+html.dark body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+html.dark .bg-white,
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80 {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/70,
+html.dark .bg-slate-100\/80,
+html.dark .bg-slate-200 {
+  background-color: #1e293b !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300 {
+  border-color: #334155 !important;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select,
+html.dark option {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+html.dark .shadow-card,
+html.dark .shadow-elevated {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35), 0 4px 12px -4px rgb(0 0 0 / 0.4);
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-slate-200:hover {
+  background-color: #334155 !important;
+}
+
+html.dark .bg-blue-50,
+html.dark .bg-indigo-50,
+html.dark .bg-purple-50 {
+  background-color: #172554 !important;
+}
+
+html.dark .bg-green-50,
+html.dark .bg-emerald-50 {
+  background-color: #052e2b !important;
+}
+
+html.dark .bg-red-50 {
+  background-color: #450a0a !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-yellow-50 {
+  background-color: #451a03 !important;
+}
+
+html.dark .border-blue-100,
+html.dark .border-blue-200,
+html.dark .border-indigo-100,
+html.dark .border-indigo-200,
+html.dark .border-purple-200,
+html.dark .border-green-200,
+html.dark .border-emerald-200,
+html.dark .border-red-200,
+html.dark .border-amber-200,
+html.dark .border-yellow-200 {
+  border-color: #475569 !important;
+}
+
+html.dark .text-blue-900,
+html.dark .text-blue-800,
+html.dark .text-indigo-700,
+html.dark .text-purple-700,
+html.dark .text-green-800,
+html.dark .text-emerald-700,
+html.dark .text-red-700,
+html.dark .text-amber-700,
+html.dark .text-yellow-800 {
+  color: #bfdbfe !important;
+}
+
+html.dark .text-blue-950,
+html.dark .text-green-950,
+html.dark .text-slate-950 {
+  color: #dbeafe !important;
+}
+
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155 !important;
+}

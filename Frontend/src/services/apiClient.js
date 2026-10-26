@@ -77,7 +77,8 @@ export async function apiRequest(endpoint, options = {}) {
     return data;
   } catch (err) {
     if (!err.statusCode) {
-      err.statusCode = 500;
+      err.statusCode = 0;
+      err.isNetworkError = true;
     }
     throw err;
   }

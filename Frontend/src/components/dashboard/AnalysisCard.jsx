@@ -23,29 +23,23 @@ function CopiedContentIcon() {
 const CARDS = {
   'error-detection': {
     icon: <ErrorDetectionIcon />,
-    module: 'Module 1',
     title: 'Error Detection',
     description: 'Check the factual information in your document against trusted reference sources.',
     formats: 'PDF · DOCX · Images',
     cta: 'Check a Document',
-    hint: 'Best for assignments, reports and research documents.',
     to: '/error-detection',
     accentClass: 'text-blue-600',
     iconBg: 'bg-blue-50 border-blue-100',
-    badgeBg: 'bg-blue-600',
   },
   'copied-content': {
     icon: <CopiedContentIcon />,
-    module: 'Module 2',
     title: 'Copied Content',
     description: 'Compare multiple documents to identify exact and near-exact copied text.',
     formats: 'Up to 60 documents',
     cta: 'Compare Documents',
-    hint: 'Best for assignments, reports and document batches.',
     to: '/copied-content',
     accentClass: 'text-indigo-600',
     iconBg: 'bg-indigo-50 border-indigo-100',
-    badgeBg: 'bg-indigo-600',
   },
 };
 
@@ -66,21 +60,10 @@ export default function AnalysisCard({ type, role }) {
         ${isPrimary ? 'border-blue-200 shadow-elevated ring-1 ring-blue-100' : 'border-slate-200 shadow-card'}`}
       aria-label={`${card.title} module`}
     >
-      {isPrimary && (
-        <span className="absolute top-4 right-4 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-          Recommended
-        </span>
-      )}
-
-      {/* Icon + badge */}
-      <div className="flex items-start gap-4">
+      {/* Icon */}
+      <div className="flex items-start">
         <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${card.iconBg} ${card.accentClass}`}>
           {card.icon}
-        </div>
-        <div className="pt-0.5">
-          <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded text-white ${card.badgeBg}`}>
-            {card.module}
-          </span>
         </div>
       </div>
 
@@ -101,7 +84,6 @@ export default function AnalysisCard({ type, role }) {
         >
           {card.cta}
         </Button>
-        <p className="text-xs text-slate-400 text-center">{card.hint}</p>
       </div>
     </article>
   );

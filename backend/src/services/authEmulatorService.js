@@ -11,6 +11,11 @@ const USERS_FILE = path.resolve(__dirname, '../config/authUsers.json');
 let server = null;
 let usersStore = {};
 
+function isAuthEmulatorEnabled() {
+  return process.env.NODE_ENV !== 'production' &&
+    process.env.USE_FIREBASE_AUTH_EMULATOR === 'true';
+}
+
 function hashPassword(password, salt) {
   return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
 }
@@ -388,6 +393,7 @@ function handleRequest(req, res) {
 }
 
 function startAuthEmulator() {
+  if (!isAuthEmulatorEnabled()) return Promise.resolve(false);
   if (server) return Promise.resolve();
 
   loadUsers();
@@ -449,6 +455,7 @@ function userExists(email) {
 
 module.exports = {
   startAuthEmulator,
+  isAuthEmulatorEnabled,
   stopAuthEmulator,
   updateUserPassword,
   userExists,

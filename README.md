@@ -109,6 +109,23 @@ Run frontend development server:
 npm run dev
 ```
 
+### Vercel deployment
+
+The Vercel project must use `Frontend` as its **Root Directory**. With that root,
+use these settings:
+
+- **Framework Preset:** Vite
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Install Command:** `npm install`
+
+`Frontend/vercel.json` serves the built `index.html` for client-side routes such
+as `/login` and `/dashboard`. Vercel serves files from `dist` before applying
+the rewrite, so generated assets remain available. Configure
+`VITE_API_BASE_URL` in the Vercel project environment variables with the
+deployed Render API URL; do not add backend API routes or localhost values to
+the Vercel configuration.
+
 ---
 
 ### 2. Backend Setup
@@ -154,8 +171,34 @@ npm start
 | `PORT` | Port for Express HTTP server (default: `5000`) |
 | `CLIENT_URL` | Allowed CORS client origin (default: `http://localhost:5173`) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to Firebase Admin SDK service account JSON |
+| `USE_FIREBASE_AUTH_EMULATOR` | Set to `true` only for local development; never enable in production |
+| `DEMO_STUDENT_PASSWORD` | Password used only by the backend demo-account seed command |
+| `DEMO_FACULTY_PASSWORD` | Password used only by the backend demo-account seed command |
+| `DEMO_ADMIN_PASSWORD` | Password used only by the backend demo-account seed command |
 
 ---
+
+### Authentication and demo accounts
+
+Email/password login and registration use Firebase Authentication in the browser. The
+Express backend verifies Firebase ID tokens and stores role profiles in Firestore; it
+does not provide a separate production login system. The local Auth Emulator is
+opt-in:
+
+```bash
+USE_FIREBASE_AUTH_EMULATOR=true npm run dev
+```
+
+For a deployed environment, create the demo users in the Firebase Authentication
+project (and their Firestore profiles) with passwords supplied as deployment
+environment variables, then run:
+
+```bash
+npm run seed:firebase-demo
+```
+
+The frontend intentionally does not contain demo passwords. The login shortcuts only
+fill the email address, after which the password must be entered.
 
 ## Firestore Database Architecture
 

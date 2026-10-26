@@ -48,7 +48,7 @@ const { startAuthEmulator } = require('./src/services/authEmulatorService');
 // Port Configuration & Server Startup
 const PORT = process.env.PORT || 5000;
 
-// Start Firebase Auth Emulator and backend server
+// The emulator is opt-in for local development. Render/production uses Firebase Auth.
 startAuthEmulator().then(() => {
   app.listen(PORT, () => {
     console.log(`TrustLens backend running on port ${PORT}`);

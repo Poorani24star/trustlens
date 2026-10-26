@@ -359,16 +359,6 @@ export default function ErrorDetectionUpload() {
 
             {inputMode === 'file' ? (
               <>
-                <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[11px] text-blue-800 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-blue-900">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span>Handwritten Exam & Photo OCR</span>
-                  </div>
-                  <p className="leading-relaxed">
-                    Camera photos of cursive handwriting require an active <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono text-[10px]">GEMINI_API_KEY</code> in <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono text-[10px]">backend/.env</code> for automatic AI transcription. Alternatively, switch to <strong>Paste Text Directly</strong> above to verify your exact words instantly.
-                  </p>
-                </div>
-
                 {(!hasFiles || selectedFiles.length < MAX_BATCH_SIZE) && !isProcessing && (
                   <FileUploader
                     onFileSelect={(file) => handleFilesSelect([file])}

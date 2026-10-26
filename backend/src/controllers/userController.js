@@ -87,6 +87,7 @@ async function updateMe(req, res, next) {
 }
 
 const authEmulatorService = require('../services/authEmulatorService');
+const { admin, isFirebaseInitialized } = require('../config/firebaseAdmin');
 
 /**
  * POST /api/users/forgot-password
@@ -99,7 +100,20 @@ async function forgotPassword(req, res, next) {
     if (!trimmed) {
       return res.status(400).json({ success: false, message: 'Please enter your email address.' });
     }
-    const exists = authEmulatorService.userExists(trimmed);
+    if (!isFirebaseInitialized() && !authEmulatorService.isAuthEmulatorEnabled()) {
+      return res.status(503).json({ success: false, message: 'Authentication service is temporarily unavailable.' });
+    }
+    let exists = false;
+    if (isFirebaseInitialized() && !authEmulatorService.isAuthEmulatorEnabled()) {
+      try {
+        await admin.auth().getUserByEmail(trimmed);
+        exists = true;
+      } catch (err) {
+        if (err.code !== 'auth/user-not-found') throw err;
+      }
+    } else {
+      exists = authEmulatorService.userExists(trimmed);
+    }
     if (!exists) {
       return res.status(404).json({ success: false, message: 'No account found with this email address.' });
     }
@@ -127,6 +141,9 @@ async function resetPassword(req, res, next) {
     if (!newPassword) {
       return res.status(400).json({ success: false, message: 'Please enter your new password.' });
     }
+    if (!isFirebaseInitialized() && !authEmulatorService.isAuthEmulatorEnabled()) {
+      return res.status(503).json({ success: false, message: 'Authentication service is temporarily unavailable.' });
+    }
     if (newPassword.length < 8 || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
       return res.status(400).json({ 
         success: false, 
@@ -136,9 +153,21 @@ async function resetPassword(req, res, next) {
     if (confirmPassword && newPassword !== confirmPassword) {
       return res.status(400).json({ success: false, message: 'Passwords do not match.' });
     }
-    const result = authEmulatorService.updateUserPassword(trimmed, newPassword);
-    if (!result.success) {
-      return res.status(404).json({ success: false, message: result.message || 'User not found.' });
+    if (isFirebaseInitialized() && !authEmulatorService.isAuthEmulatorEnabled()) {
+      try {
+        const firebaseUser = await admin.auth().getUserByEmail(trimmed);
+        await admin.auth().updateUser(firebaseUser.uid, { password: newPassword });
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+        throw err;
+      }
+    } else {
+      const result = authEmulatorService.updateUserPassword(trimmed, newPassword);
+      if (!result.success) {
+        return res.status(404).json({ success: false, message: result.message || 'User not found.' });
+      }
     }
     return res.status(200).json({
       success: true,

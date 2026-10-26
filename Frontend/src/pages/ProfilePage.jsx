@@ -10,6 +10,7 @@ import AccountInformationCard from '../components/profile/AccountInformationCard
 import PreferencesCard from '../components/profile/PreferencesCard';
 import SecurityCard from '../components/profile/SecurityCard';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 // Derive a human-readable "Member since" from the stored user.
 // When the backend provides a real createdAt date, replace this.
@@ -23,9 +24,8 @@ export default function ProfilePage() {
   // when a real updateProfile API is available.
   const [displayName, setDisplayName] = useState(user?.name ?? '');
 
-  // Preferences — local state until a preferences API exists
   const [notifications, setNotifications] = useState(true);
-  const [theme, setTheme] = useState('system');
+  const { theme, setTheme } = useTheme();
 
   async function handleLogout() {
     await logout();

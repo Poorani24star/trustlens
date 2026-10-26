@@ -17,9 +17,9 @@ function validate(email, password) {
 }
 
 const DEMO_ACCOUNTS = [
-  { label: 'Student', email: 'student@demo.com', password: 'password123', role: 'student' },
-  { label: 'Faculty / Researcher', email: 'faculty1@example.com', password: 'Password123!', role: 'faculty_researcher' },
-  { label: 'Admin', email: 'admin@demo.com', password: 'Password123!', role: 'admin' },
+  { label: 'Student', email: 'student@demo.com', role: 'student' },
+  { label: 'Faculty / Researcher', email: 'faculty1@example.com', role: 'faculty_researcher' },
+  { label: 'Admin', email: 'admin@demo.com', role: 'admin' },
 ];
 
 export default function LoginPage() {
@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   function handleFillDemo(acc) {
-    setForm({ email: acc.email, password: acc.password });
+    setForm({ email: acc.email, password: '' });
     setErrors({});
     setServerError('');
   }
@@ -189,7 +189,7 @@ export default function LoginPage() {
 
       {/* Demo quick-select shortcuts */}
       <div className="mt-4 p-3.5 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs text-slate-600">
-        <p className="font-medium text-slate-700 mb-2 text-center">Quick Demo Credentials (click to fill):</p>
+        <p className="font-medium text-slate-700 mb-2 text-center">Quick Demo Accounts (click to fill email):</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           {DEMO_ACCOUNTS.map(acc => (
             <button

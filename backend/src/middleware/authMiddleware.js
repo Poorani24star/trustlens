@@ -1,6 +1,7 @@
 const { getAuth } = require('firebase-admin/auth');
 const { getUserProfile, getUserProfileByEmail } = require('../services/userService');
 const { isFirebaseInitialized } = require('../config/firebaseAdmin');
+const { isAuthEmulatorEnabled, getUserByUidOrEmail } = require('../services/authEmulatorService');
 
 /**
  * Authentication Middleware
@@ -50,7 +51,7 @@ async function authenticateUser(req, res, next) {
       }
     }
 
-    if (isEmulatorToken) {
+    if (isEmulatorToken && isAuthEmulatorEnabled()) {
       let payloadString = '';
       try {
         payloadString = Buffer.from(parts[1], 'base64url').toString('utf8');
@@ -63,30 +64,18 @@ async function authenticateUser(req, res, next) {
       uid = payload.user_id || payload.uid || payload.sub;
       email = payload.email;
     } else {
+      if (isEmulatorToken) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired authentication token'
+        });
+      }
       try {
         const decodedToken = await getAuth().verifyIdToken(idToken);
         uid = decodedToken.uid;
         email = decodedToken.email;
       } catch (verifyErr) {
-        if (parts.length >= 2) {
-          let payloadString = '';
-          try {
-            payloadString = Buffer.from(parts[1], 'base64url').toString('utf8');
-          } catch {
-            let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            while (b64.length % 4) b64 += '=';
-            payloadString = Buffer.from(b64, 'base64').toString('utf8');
-          }
-          const payload = JSON.parse(payloadString);
-          if (payload && (payload.user_id || payload.uid || payload.sub)) {
-            uid = payload.user_id || payload.uid || payload.sub;
-            email = payload.email;
-          } else {
-            throw verifyErr;
-          }
-        } else {
-          throw verifyErr;
-        }
+        throw verifyErr;
       }
     }
 
@@ -104,9 +93,8 @@ async function authenticateUser(req, res, next) {
     }
 
     // Fallback: check emulator user store
-    if (!userProfile) {
-      const authEmulator = require('../services/authEmulatorService');
-      const emUser = authEmulator.getUserByUidOrEmail ? authEmulator.getUserByUidOrEmail(uid, email) : null;
+    if (!userProfile && isAuthEmulatorEnabled()) {
+      const emUser = getUserByUidOrEmail(uid, email);
       if (emUser) {
         userProfile = {
           uid: emUser.uid,

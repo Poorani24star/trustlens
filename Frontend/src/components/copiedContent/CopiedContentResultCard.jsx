@@ -62,10 +62,10 @@ export default function CopiedContentResultCard({ pair, pairIndex }) {
     <>
       <div
         id={pair.pairId ? `pair-card-${pair.pairId}` : `pair-card-${pairIndex}`}
-        className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-0 transition-all"
+        className="w-full min-w-0 max-w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-0 transition-all"
       >
         {/* Pair Header Summary */}
-        <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 min-w-0">
           <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -77,10 +77,10 @@ export default function CopiedContentResultCard({ pair, pairIndex }) {
               </div>
             </div>
 
-            <h4 className="text-base font-bold text-slate-900 flex items-center gap-2 truncate">
-              <span className="text-slate-800 truncate" title={docAName}>{docAName}</span>
+            <h4 className="min-w-0 max-w-full text-base font-bold text-slate-900 flex items-center gap-2">
+              <span className="min-w-0 flex-1 text-slate-800 truncate" title={docAName}>{docAName}</span>
               <span className="text-slate-400 font-normal shrink-0">vs</span>
-              <span className="text-slate-800 truncate" title={docBName}>{docBName}</span>
+              <span className="min-w-0 flex-1 text-slate-800 truncate" title={docBName}>{docBName}</span>
             </h4>
           </div>
 
@@ -117,7 +117,7 @@ export default function CopiedContentResultCard({ pair, pairIndex }) {
 
         {/* Matching Sections */}
         {isExpanded && (
-          <div className="p-5 space-y-4">
+          <div className="p-4 sm:p-5 space-y-4 min-w-0">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h5 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                 <Copy className="w-4 h-4 text-indigo-600" />

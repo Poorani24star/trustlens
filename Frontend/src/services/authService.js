@@ -62,6 +62,9 @@ export async function getCurrentUserProfile(tokenOverride = null, expectedEmail 
     if (err.isSuspended) {
       throw err;
     }
+    if (err.statusCode !== 404) {
+      throw err;
+    }
     console.warn('[AuthService] Backend profile fetch notice:', err.message);
   }
 
@@ -126,6 +129,7 @@ export async function login(email, password) {
         setStoredUser(null);
         throw new Error('Your account has been suspended. Please contact an administrator.');
       }
+      throw err;
     }
 
     if (backendUser && backendUser.role) {
@@ -172,6 +176,16 @@ export async function login(email, password) {
       throw new Error('Your account has been suspended. Please contact an administrator.');
     }
 
+    if (err.isNetworkError || err.statusCode === 0) {
+      throw new Error('Unable to connect to TrustLens. Check your internet connection and try again.');
+    }
+    if (err.statusCode >= 500) {
+      throw new Error('TrustLens is temporarily unavailable. Please try again in a moment.');
+    }
+    if (err.statusCode >= 400 && !err.code) {
+      throw new Error(err.message || 'The server could not complete sign in. Please try again.');
+    }
+
     if (err.code === 'auth/network-request-failed') {
       throw new Error('Unable to connect to the authentication service. Please ensure the backend server is running.');
     }
@@ -185,7 +199,7 @@ export async function login(email, password) {
       err.code === 'auth/configuration-not-found' ||
       err.code === 'auth/api-key-not-valid'
     ) {
-      throw new Error('Invalid email or password.');
+      throw new Error('Unable to sign in. Please try again.');
     }
     if (err.code === 'auth/invalid-email') {
       throw new Error('Please enter a valid email address.');

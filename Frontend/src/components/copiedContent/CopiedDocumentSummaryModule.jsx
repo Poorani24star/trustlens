@@ -216,11 +216,11 @@ export default function CopiedDocumentSummaryModule({
   return (
     <section
       aria-label="Executive Document Copy Summary"
-      className="bg-white rounded-2xl border border-indigo-100 shadow-card p-6 space-y-5 animate-fadeIn"
+      className="w-full min-w-0 max-w-full bg-white rounded-2xl border border-indigo-100 shadow-card p-4 sm:p-6 space-y-5 animate-fadeIn"
     >
       {/* Module Title & Quick Context */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" />
@@ -238,15 +238,10 @@ export default function CopiedDocumentSummaryModule({
           <h2 className="text-lg font-bold text-slate-900">
             Document-to-Document Copying Summary
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Instant overview of which documents share copied passages. Staff
-            can identify matching document pairs immediately without reading all
-            content.
-          </p>
         </div>
 
         {/* View Mode Switcher */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start md:self-auto shrink-0 border border-slate-200">
+        <div className="max-w-full flex items-center gap-1 flex-wrap bg-slate-100 p-1 rounded-xl self-start md:self-auto shrink-0 border border-slate-200">
           <button
             type="button"
             onClick={() => setViewMode('pairwise')}
@@ -382,7 +377,7 @@ export default function CopiedDocumentSummaryModule({
         </div>
 
         {/* Search input */}
-        <div className="relative min-w-[200px]">
+        <div className="relative w-full sm:w-auto sm:min-w-[200px] min-w-0">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
