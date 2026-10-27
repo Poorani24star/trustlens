@@ -54,16 +54,16 @@ export default function LiveAnalysisProgressModal({
       aria-modal="true"
       aria-labelledby="progress-modal-title"
     >
-      <div className="relative w-full max-w-xl bg-white border border-slate-200/90 rounded-3xl shadow-2xl overflow-hidden transition-all transform scale-100">
+      <div className="relative w-full max-w-xl max-h-[calc(100vh-2rem)] overflow-y-auto bg-white border border-slate-200/90 rounded-3xl shadow-2xl transition-all transform scale-100">
         
         {/* Glowing Top Ambient Header */}
         <div className={`h-2 w-full ${isUnsupported ? 'bg-amber-500' : isFailed ? 'bg-rose-500' : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 animate-pulse'}`} />
 
-        <div className="p-6 sm:p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-5 sm:space-y-6">
 
           {/* Modal Header */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap min-w-0">
+            <div className="min-w-0 flex-1 flex items-start gap-3">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0 border ${
                 isUnsupported 
                   ? 'bg-amber-50 border-amber-200 text-amber-600'
@@ -83,8 +83,8 @@ export default function LiveAnalysisProgressModal({
                   <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                 )}
               </div>
-              <div>
-                <h3 id="progress-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <div className="min-w-0">
+                <h3 id="progress-modal-title" className="text-base sm:text-lg font-bold text-slate-900 break-words [overflow-wrap:anywhere]">
                   {title}
                 </h3>
                 <p className="text-xs font-medium text-slate-500 mt-0.5">
@@ -94,7 +94,7 @@ export default function LiveAnalysisProgressModal({
             </div>
 
             {/* Top Right: Close Button or Percentage Badge */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               <div className="text-right">
                 <span className={`text-2xl font-extrabold tracking-tight ${isUnsupported ? 'text-amber-600' : isFailed ? 'text-rose-600' : 'text-blue-600'}`}>
                   {percent}%
@@ -143,12 +143,12 @@ export default function LiveAnalysisProgressModal({
           {/* Granular Pair Comparison Tracker (if Copied Content module) */}
           {pairs.total > 0 && (
             <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100/90 text-xs text-indigo-900 space-y-1.5">
-              <div className="flex items-center justify-between font-semibold">
-                <span className="flex items-center gap-1.5">
+              <div className="flex items-start justify-between gap-2 flex-wrap font-semibold">
+                <span className="min-w-0 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-indigo-600" />
                   Pairwise Document Comparisons:
                 </span>
-                <span className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded-full border border-indigo-200">
+                <span className="shrink-0 font-mono text-indigo-700 bg-white px-2 py-0.5 rounded-full border border-indigo-200">
                   {pairs.current} of {pairs.total} Pairs
                 </span>
               </div>
@@ -161,7 +161,7 @@ export default function LiveAnalysisProgressModal({
           )}
 
           {/* Step Breadcrumbs Checklist */}
-          <div className="grid grid-cols-4 gap-2 pt-1 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
             {[
               { step: 1, label: 'Upload' },
               { step: 2, label: 'Extraction' },
@@ -206,11 +206,11 @@ export default function LiveAnalysisProgressModal({
               <button
                 type="button"
                 onClick={() => setShowFilesList(v => !v)}
-                className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-slate-700 hover:bg-slate-100/70 transition-colors"
+                className="w-full px-3 sm:px-4 py-2.5 flex items-start justify-between gap-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100/70 transition-colors"
               >
-                <div className="flex items-center gap-2">
+                <div className="min-w-0 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-slate-500" />
-                  <span>Document Status Breakdown ({completedFiles}/{files.length})</span>
+                  <span className="break-words">Document Status Breakdown ({completedFiles}/{files.length})</span>
                   {failedFiles > 0 && (
                     <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">
                       {failedFiles} Failed
@@ -223,10 +223,10 @@ export default function LiveAnalysisProgressModal({
               {showFilesList && (
                 <div className="max-h-48 overflow-y-auto px-4 pb-3 pt-1 divide-y divide-slate-100 text-xs">
                   {files.map(file => (
-                    <div key={file.id || file.name} className="py-2 flex items-center justify-between gap-3">
+                    <div key={file.id || file.name} className="py-2 flex items-start justify-between gap-3 flex-wrap">
                       <div className="flex items-center gap-2 min-w-0">
                         <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate font-medium text-slate-700 max-w-[240px]">
+                        <span className="min-w-0 max-w-full truncate font-medium text-slate-700 sm:max-w-[240px]">
                           {file.name}
                         </span>
                       </div>
@@ -349,7 +349,7 @@ export default function LiveAnalysisProgressModal({
                 ⚡ Real-time live pipeline powered by TrustLens
               </p>
               
-              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap order-1 sm:order-2">
                 {isCompleted && !isUnsupported && (
                   <>
                     {onClose && (

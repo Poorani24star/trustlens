@@ -447,14 +447,14 @@ export default function ReportDetailPage() {
                 </div>
               </div>
               <div className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 flex-wrap text-xs ${hasIssues ? 'bg-amber-50/80 border-amber-200 text-amber-900' : 'bg-emerald-50/80 border-emerald-200 text-emerald-900'}`}>
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                <div className="min-w-0 w-full flex-1 flex items-start gap-2.5">
                   {hasIssues ? <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" /> : <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />}
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold text-sm block">Overall Result: {overallResultTitle}</span>
                     <span className="text-xs opacity-90 break-words [overflow-wrap:anywhere]">{overallResultSubtitle}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] font-semibold">
+                <div className="w-full sm:w-auto flex items-center gap-2 text-[11px] font-semibold">
                   <span className="max-w-full px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-2xs text-slate-700 break-words [overflow-wrap:anywhere]">Threshold: 80% Cosine</span>
                 </div>
               </div>
@@ -565,13 +565,13 @@ export default function ReportDetailPage() {
                           className="min-w-0 max-w-full p-3.5 rounded-xl border border-green-200 bg-green-50/30 hover:bg-green-50/60 transition-colors space-y-2.5 [overflow-wrap:anywhere]"
                           role="listitem"
                         >
-                          <div className="flex items-start justify-between gap-3 flex-wrap min-w-0">
-                            <div className="min-w-0 max-w-full flex-1 flex items-center gap-2 flex-wrap">
-                              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-green-100 text-green-800 border border-green-300 inline-flex items-center gap-1 shrink-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3 min-w-0">
+                            <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
+                              <span className="whitespace-nowrap text-xs px-2.5 py-0.5 rounded-full font-semibold bg-green-100 text-green-800 border border-green-300 inline-flex items-center gap-1 shrink-0">
                                 <Check className="w-3 h-3" />
                                 Supported
                               </span>
-                              <span className="text-xs font-bold text-slate-500 shrink-0">
+                              <span className="whitespace-nowrap text-xs font-bold text-slate-500 shrink-0">
                                 Statement #{s.index || idx + 1}
                               </span>
                               {(s.sourcePage || s.page) ? (
@@ -583,9 +583,6 @@ export default function ReportDetailPage() {
                                   {s.documentName}
                                 </span>
                               ) : null)}
-                              <span className="min-w-0 max-w-full flex-1 text-xs font-medium text-slate-800 break-words [overflow-wrap:anywhere]" title={s.statement || s.statementText}>
-                                &ldquo;{s.statement || s.statementText}&rdquo;
-                              </span>
                             </div>
 
                             <div className="flex items-center gap-2 flex-wrap shrink-0">
@@ -604,6 +601,10 @@ export default function ReportDetailPage() {
                                 {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                               </button>
                             </div>
+                          </div>
+
+                          <div className="w-full min-w-0 text-xs font-medium text-slate-800 break-words [overflow-wrap:anywhere]" title={s.statement || s.statementText}>
+                            &ldquo;{s.statement || s.statementText}&rdquo;
                           </div>
 
                           {isExpanded && (
@@ -672,13 +673,13 @@ export default function ReportDetailPage() {
                         className={`min-w-0 max-w-full p-4 rounded-xl border space-y-3 transition-colors [overflow-wrap:anywhere]
                           ${category === 'incorrect' ? 'bg-red-50/40 border-red-200 hover:bg-red-50/60' : category === 'misleading' ? 'bg-amber-50/40 border-amber-200 hover:bg-amber-50/60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'}`}
                       >
-                        <div className="flex items-start justify-between gap-2 flex-wrap min-w-0">
-                          <div className="min-w-0 max-w-full flex-1 flex items-center gap-2 flex-wrap">
-                            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border inline-flex items-center gap-1 ${badgeCls}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3 min-w-0">
+                          <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
+                            <span className={`whitespace-nowrap text-xs px-2.5 py-0.5 rounded-full font-semibold border inline-flex items-center gap-1 ${badgeCls}`}>
                               <StatusIcon className="w-3 h-3" />
                               {statusLabel}
                             </span>
-                            <span className="text-xs font-bold text-slate-500">Statement #{s.index || idx + 1}</span>
+                            <span className="whitespace-nowrap text-xs font-bold text-slate-500">Statement #{s.index || idx + 1}</span>
                             {(s.sourcePage || s.page) ? (
                               <span className="max-w-full text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 break-words [overflow-wrap:anywhere]">
                                 Page {s.sourcePage || s.page}
@@ -708,7 +709,7 @@ export default function ReportDetailPage() {
                           </div>
                         </div>
 
-                        <div className="text-sm font-medium text-slate-900 bg-white p-3 rounded-lg border border-slate-200 shadow-2xs break-words">
+                        <div className="w-full min-w-0 text-sm font-medium text-slate-900 bg-white p-3 rounded-lg border border-slate-200 shadow-2xs break-words [overflow-wrap:anywhere]">
                           &ldquo;{s.statement || s.originalStatement || s.statementText}&rdquo;
                         </div>
 
