@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { 
   login as apiLogin, 
+  loginWithGoogle as apiLoginWithGoogle,
   logout as apiLogout, 
   register as apiRegister, 
   getRoleRedirect,
@@ -37,6 +38,13 @@ export function AuthProvider({ children }) {
     return getRoleRedirect(u.role);
   }, []);
 
+  const loginWithGoogle = useCallback(async () => {
+    setAuthError(null);
+    const u = await apiLoginWithGoogle();
+    setUser(u);
+    return getRoleRedirect(u.role);
+  }, []);
+
   const register = useCallback(async (data) => {
     setAuthError(null);
     const u = await apiRegister(data);
@@ -51,7 +59,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, authError, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, authError, login, loginWithGoogle, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

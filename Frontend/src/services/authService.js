@@ -1,6 +1,8 @@
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
+  signInWithPopup,
+  GoogleAuthProvider,
   sendPasswordResetEmail,
   signOut as firebaseSignOut,
   onAuthStateChanged
@@ -45,7 +47,7 @@ export function resolveUserRole(_email, explicitRole = null) {
 /**
  * Fetch current user profile from backend /api/users/me
  */
-export async function getCurrentUserProfile(tokenOverride = null, expectedEmail = null) {
+export async function getCurrentUserProfile(tokenOverride = null, expectedEmail = null, allowStoredFallback = true) {
   try {
     const headers = tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {};
     const res = await apiRequest('/users/me', { headers, token: tokenOverride });
@@ -66,6 +68,10 @@ export async function getCurrentUserProfile(tokenOverride = null, expectedEmail 
       throw err;
     }
     console.warn('[AuthService] Backend profile fetch notice:', err.message);
+  }
+
+  if (!allowStoredFallback) {
+    return null;
   }
 
   const stored = getStoredUser();
@@ -92,6 +98,7 @@ export async function login(email, password) {
   if (!trimmedEmail) {
     throw new Error('Please enter your email address.');
   }
+
   if (!password) {
     throw new Error('Please enter your password.');
   }
@@ -216,6 +223,93 @@ export async function login(email, password) {
       throw err;
     }
     throw new Error('Invalid email or password.');
+  }
+}
+
+/**
+ * Sign in with Google and synchronise the authenticated Firebase user with
+ * the existing TrustLens profile service.
+ */
+export async function loginWithGoogle() {
+  setStoredUser(null);
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  try {
+    const credential = await signInWithPopup(auth, provider);
+    const firebaseUser = credential.user;
+    const token = await firebaseUser.getIdToken();
+    const expectedEmail = (firebaseUser.email || '').trim();
+
+    let profile = await getCurrentUserProfile(token, expectedEmail, false);
+
+    if (!profile) {
+      const name = (firebaseUser.displayName || expectedEmail.split('@')[0] || 'User').trim();
+      try {
+        const response = await apiRequest('/users/profile', {
+          method: 'POST',
+          token,
+          body: JSON.stringify({ name, role: 'student' }),
+        });
+        profile = response?.user || null;
+      } catch (createError) {
+        if (createError.statusCode !== 409) {
+          throw createError;
+        }
+
+        // Another auth-state handler or browser tab may have created it first.
+        profile = await getCurrentUserProfile(token, expectedEmail, false);
+        if (!profile) {
+          throw new Error('Your account profile could not be created. Please try again.');
+        }
+      }
+    }
+
+    if (profile.status === 'suspended') {
+      await firebaseSignOut(auth);
+      throw new Error('Your account has been suspended. Please contact an administrator.');
+    }
+
+    const finalUser = {
+      ...profile,
+      uid: profile.uid || firebaseUser.uid,
+      email: profile.email || firebaseUser.email,
+      name: profile.name || firebaseUser.displayName || expectedEmail.split('@')[0],
+      role: normalizeRole(profile.role) || 'student',
+      token,
+    };
+    setStoredUser(finalUser);
+    return finalUser;
+  } catch (err) {
+    if (err.isSuspended || err.statusCode === 403) {
+      throw new Error('Your account has been suspended. Please contact an administrator.');
+    }
+    if (err.isNetworkError || err.statusCode === 0 || err.code === 'auth/network-request-failed') {
+      throw new Error('Unable to connect to TrustLens. Check your internet connection and try again.');
+    }
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      throw new Error('Google sign-in was cancelled.');
+    }
+    if (err.code === 'auth/popup-blocked') {
+      throw new Error('Google sign-in was blocked by your browser. Allow pop-ups and try again.');
+    }
+    if (err.code === 'auth/operation-not-allowed') {
+      throw new Error('Google sign-in is currently unavailable. Please use email and password or contact support.');
+    }
+    if (err.code === 'auth/unauthorized-domain') {
+      throw new Error('This website is not authorised for Google sign-in. Please contact support.');
+    }
+    if (err.code === 'auth/user-disabled') {
+      throw new Error('This account has been disabled. Please contact support.');
+    }
+    if (err.code === 'auth/account-exists-with-different-credential') {
+      throw new Error('An account already exists with this email. Sign in using the original provider.');
+    }
+    if (err.statusCode >= 500) {
+      throw new Error('TrustLens is temporarily unavailable. Please try again in a moment.');
+    }
+    throw new Error(err.message || 'Unable to sign in with Google. Please try again.');
   }
 }
 
