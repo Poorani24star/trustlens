@@ -12,6 +12,8 @@ build/
 !package.json
 !package-lock.json
 !.oxlintrc.json
+!vercel.json
+!**/vercel.json
 *serviceAccount*.json
 
 # Temporary uploads & OS files
