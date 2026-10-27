@@ -27,9 +27,14 @@ export default function AdminHeader({ onMenuOpen, pageTitle = 'Admin Dashboard' 
         </svg>
       </button>
 
-      <h1 className="text-base font-semibold text-slate-900 flex-1">{pageTitle}</h1>
+      <h1
+        className="min-w-0 flex-1 truncate text-sm sm:text-base font-semibold text-slate-900"
+        title={pageTitle}
+      >
+        {pageTitle}
+      </h1>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-3">
         <button
           className="relative p-2 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"
           aria-label="Notifications (none)"

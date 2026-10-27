@@ -303,14 +303,14 @@ export default function ReportDetailPage() {
         <div className="flex items-start justify-between gap-4 flex-wrap min-w-0">
           <button
             onClick={() => navigate(backPath)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            className="w-full sm:w-auto inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> {backText}
           </button>
 
-          <div className="w-full sm:w-auto flex items-center justify-start sm:justify-end gap-2 flex-wrap min-w-0">
+          <div className="w-full flex flex-col sm:w-auto sm:flex-row items-stretch sm:items-center justify-start sm:justify-end gap-2 min-w-0">
             {!isAdminView && (
-              <Button variant="outline" size="sm" onClick={() => navigate(isErrorDetection ? '/error-detection' : '/copied-content')}>
+              <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={() => navigate(isErrorDetection ? '/error-detection' : '/copied-content')}>
                 <PlusCircle className="w-3.5 h-3.5" /> Run New Analysis
               </Button>
             )}
@@ -326,7 +326,7 @@ export default function ReportDetailPage() {
                   });
                   setActiveDiffPair(sorted[0] || pairsList[0]);
                 }}
-                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                className="w-full sm:w-auto text-indigo-600 border-indigo-200 hover:bg-indigo-50"
               >
                 <ArrowLeftRight className="w-3.5 h-3.5" /> Side-by-Side Diff
               </Button>
@@ -334,6 +334,7 @@ export default function ReportDetailPage() {
             <Button
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto"
               onClick={() => {
                 try {
                   generatePdfReport(report);
@@ -346,7 +347,7 @@ export default function ReportDetailPage() {
             >
               <Download className="w-3.5 h-3.5" /> Download PDF
             </Button>
-            <Button variant="danger" size="sm" onClick={handleDelete} disabled={isDeleting}>
+            <Button className="w-full sm:w-auto" variant="danger" size="sm" onClick={handleDelete} disabled={isDeleting}>
               <Trash2 className="w-3.5 h-3.5" /> {isDeleting ? 'Deleting…' : 'Delete Report'}
             </Button>
           </div>
@@ -355,14 +356,14 @@ export default function ReportDetailPage() {
         {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />}
 
         <div className="w-full min-w-0 bg-white rounded-2xl border border-slate-200 shadow-card p-4 sm:p-6 space-y-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap min-w-0">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4 min-w-0">
             <div className="min-w-0 flex-1 max-w-full">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap min-w-0">
                 <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full border ${isErrorDetection ? 'bg-blue-50 text-blue-700 border-blue-200' : isCopiedContent ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-300'}`}>
                   {isErrorDetection ? 'Error Detection Report' : isCopiedContent ? 'Copied Content Detection Report' : 'System Report'}
                 </span>
                 {isErrorDetection && (
-                  <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                  <span className={`max-w-full inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border break-words [overflow-wrap:anywhere] ${
                     extractionMethod === 'gemini-vision' || extractionMethod?.includes('vision')
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : extractionMethod === 'ocr'
@@ -381,19 +382,19 @@ export default function ReportDetailPage() {
                       : 'Extraction: Normal Text'}
                   </span>
                 )}
-                <span className="text-xs text-slate-400">•</span>
                 <span className="max-w-full text-xs text-slate-500 font-medium break-all">ID: {report.id}</span>
               </div>
               <h1 className="max-w-full text-xl font-bold text-slate-900 break-words [overflow-wrap:anywhere]">{isCopiedContent ? 'Copied Content Detection Report' : (report.title || docName)}</h1>
-              <p className="max-w-full text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap break-words [overflow-wrap:anywhere]">
+              <p className="max-w-full text-xs text-slate-500 mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 break-words [overflow-wrap:anywhere]">
                 <span>Documents Analyzed: <strong className="text-slate-700">{totalDocsCount} file(s)</strong></span>
-                <span>•</span>
-                {isErrorDetection && <span>Statements Checked: <strong className="text-slate-700">{totalStatements}</strong> •</span>}
-                {isCopiedContent && <span>Comparisons: <strong className="text-slate-700">{totalComparisonsCount} pair(s)</strong> •</span>}
+                {isErrorDetection && <span>Statements Checked: <strong className="text-slate-700">{totalStatements}</strong></span>}
+                {isCopiedContent && <span>Comparisons: <strong className="text-slate-700">{totalComparisonsCount} pair(s)</strong></span>}
                 <span>Analyzed on {createdAtFormatted}</span>
               </p>
             </div>
-            <ReportStatusBadge status={report.status} />
+            <div className="shrink-0">
+              <ReportStatusBadge status={report.status} />
+            </div>
           </div>
 
           {documentList.length > 1 && (
@@ -564,8 +565,8 @@ export default function ReportDetailPage() {
                           className="min-w-0 max-w-full p-3.5 rounded-xl border border-green-200 bg-green-50/30 hover:bg-green-50/60 transition-colors space-y-2.5 [overflow-wrap:anywhere]"
                           role="listitem"
                         >
-                          <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex items-start justify-between gap-3 flex-wrap min-w-0">
+                            <div className="min-w-0 max-w-full flex-1 flex items-center gap-2 flex-wrap">
                               <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-green-100 text-green-800 border border-green-300 inline-flex items-center gap-1 shrink-0">
                                 <Check className="w-3 h-3" />
                                 Supported
@@ -574,20 +575,20 @@ export default function ReportDetailPage() {
                                 Statement #{s.index || idx + 1}
                               </span>
                               {(s.sourcePage || s.page) ? (
-                                <span className="text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 shrink-0">
+                                <span className="max-w-full text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 shrink-0 break-words [overflow-wrap:anywhere]">
                                   Page {s.sourcePage || s.page}
                                 </span>
                               ) : (s.documentName ? (
-                                <span className="text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 shrink-0">
+                                <span className="max-w-full text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 shrink-0 break-words [overflow-wrap:anywhere]">
                                   {s.documentName}
                                 </span>
                               ) : null)}
-                              <span className="text-xs font-medium text-slate-800 truncate" title={s.statement || s.statementText}>
+                              <span className="min-w-0 max-w-full flex-1 text-xs font-medium text-slate-800 break-words [overflow-wrap:anywhere]" title={s.statement || s.statementText}>
                                 &ldquo;{s.statement || s.statementText}&rdquo;
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-2 flex-wrap shrink-0">
                               {formattedScore && (
                                 <span className="text-[11px] bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200 font-medium">
                                   Similarity: <strong>{formattedScore}</strong>
@@ -671,25 +672,25 @@ export default function ReportDetailPage() {
                         className={`min-w-0 max-w-full p-4 rounded-xl border space-y-3 transition-colors [overflow-wrap:anywhere]
                           ${category === 'incorrect' ? 'bg-red-50/40 border-red-200 hover:bg-red-50/60' : category === 'misleading' ? 'bg-amber-50/40 border-amber-200 hover:bg-amber-50/60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'}`}
                       >
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-start justify-between gap-2 flex-wrap min-w-0">
+                          <div className="min-w-0 max-w-full flex-1 flex items-center gap-2 flex-wrap">
                             <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border inline-flex items-center gap-1 ${badgeCls}`}>
                               <StatusIcon className="w-3 h-3" />
                               {statusLabel}
                             </span>
                             <span className="text-xs font-bold text-slate-500">Statement #{s.index || idx + 1}</span>
                             {(s.sourcePage || s.page) ? (
-                              <span className="text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200">
+                              <span className="max-w-full text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 break-words [overflow-wrap:anywhere]">
                                 Page {s.sourcePage || s.page}
                               </span>
                             ) : (s.documentName ? (
-                              <span className="text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200">
+                              <span className="max-w-full text-[10px] bg-white text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200 break-words [overflow-wrap:anywhere]">
                                 {s.documentName}
                               </span>
                             ) : null)}
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap shrink-0">
                             {formattedScore && (
                               <span className="text-xs text-slate-500 font-medium">
                                 Similarity: <strong className="text-slate-800">{formattedScore}</strong>
